@@ -1,5 +1,5 @@
 
-# Axure-to-Playwright QA Agent (SPA) : Automated Testing System From Axure Prototypes to Browser Execution**
+# Axure-to-Playwright QA Agent (SPA) : Automated Testing System From Axure Prototypes to Browser Execution
 
 ![这是图片](/screenshots/demo1.gif "demo")
 

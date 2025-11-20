@@ -69,28 +69,6 @@ defaultProfile.windows
 # SQL files
 *.sql
 
-# Debug and temporary screenshots
-screenshots/debug-*
-screenshots/temp-*
-screenshots/screenshot-*.png
-screenshots/*-failed.png
-screenshots/assertion-*-failed.png
-
-# Screenshot index files (auto-generated)
-screenshots/index/
-screenshots/*_screenshots.json
-
-# PNG files (except public assets and documentation)
-*.png
-!public/*.png
-!src/assets/*.png
-!docs/images/*.png
-!docs/images/*.jpg
-!docs/images/*.jpeg
-
-# Screenshots directory (completely ignored)
-screenshots/
-
 # Cache and IDE files
 .bolt/
 .claude/
