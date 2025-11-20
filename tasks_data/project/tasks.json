@@ -1,0 +1,189 @@
+{
+  "tasks": [
+    {
+      "id": "092c5f51-7ba4-4ade-a590-9fa672141fa4",
+      "name": "扩展 ModelDefinition 接口支持自定义 API 端点",
+      "description": "在 src/services/modelRegistry.ts 中扩展 ModelDefinition 接口，添加 customBaseUrl 和 requiresCustomAuth 可选字段，以支持自定义 API 端点和认证格式。同时添加 Gemini 2.5 Flash (Local) 模型定义到 models 数组中。",
+      "notes": "此任务是基础任务，其他任务依赖此接口扩展。确保向后兼容，现有模型（GPT-4o, DeepSeek, Claude Sonnet 4.5）不受影响。",
+      "status": "completed",
+      "dependencies": [],
+      "createdAt": "2025-11-11T03:16:24.300Z",
+      "updatedAt": "2025-11-11T03:20:49.713Z",
+      "relatedFiles": [
+        {
+          "path": "src/services/modelRegistry.ts",
+          "type": "TO_MODIFY",
+          "description": "模型注册表核心文件，定义 ModelDefinition 接口和所有可用模型",
+          "lineStart": 2,
+          "lineEnd": 63
+        }
+      ],
+      "implementationGuide": "1. 在 ModelDefinition 接口中添加两个可选字段：\n   - customBaseUrl?: string (用于指定自定义 API 端点)\n   - requiresCustomAuth?: boolean (标记是否需要自定义认证格式)\n\n2. 在 models 数组末尾添加新模型定义：\n   {\n     id: 'gemini-2.5-flash-local',\n     name: 'Gemini 2.5 Flash (Local)',\n     provider: 'Google (Local)',\n     openRouterModel: 'gemini-2.5-flash',\n     customBaseUrl: 'http://localhost:3000/v1',\n     requiresCustomAuth: true,\n     defaultConfig: { temperature: 0.3, maxTokens: 2000 },\n     capabilities: ['text-generation', 'multimodal', 'reasoning', 'code-analysis', 'image-understanding', 'audio-understanding'],\n     description: '本地部署的 Gemini 2.5 Flash 模型，支持文本、图片、音频多模态输入',\n     costLevel: 'low'\n   }\n\n注意：新增字段为可选字段，不影响现有模型定义的兼容性。",
+      "verificationCriteria": "1. ModelDefinition 接口包含 customBaseUrl 和 requiresCustomAuth 可选字段\n2. models 数组包含 gemini-2.5-flash-local 模型定义\n3. 执行 npm run build 无 TypeScript 错误\n4. 现有模型定义不受影响（GPT-4o, DeepSeek, Claude Sonnet 4.5）",
+      "analysisResult": "配置本地 Gemini 2.5 Flash API 对接，支持自定义 API 端点和认证方式，实现与 GPT-4o、DeepSeek V3、Claude Sonnet 4.5 一致的前端模型切换体验。核心目标：扩展现有架构，支持自定义 baseUrl 和认证格式，不破坏现有功能，确保安全性（API Key 从环境变量读取）。",
+      "summary": "✅ 任务完成，成功扩展 ModelDefinition 接口并添加 Gemini 2.5 Flash (Local) 模型。\n\n**完成内容**：\n1. ✅ ModelDefinition 接口已添加 customBaseUrl 和 requiresCustomAuth 可选字段\n2. ✅ models 数组包含 gemini-2.5-flash-local 模型定义，配置完整\n3. ✅ TypeScript 编译通过（npx tsc --noEmit），无类型错误\n4. ✅ 现有模型（GPT-4o, DeepSeek, Claude Sonnet 4.5）不受影响，向后兼容\n\n**实施细节**：\n- customBaseUrl 设置为 'http://localhost:3000/v1'\n- requiresCustomAuth 标记为 true\n- 添加了 6 个 capabilities，包括多模态支持（image-understanding, audio-understanding）\n- costLevel 设置为 'low'，适合本地部署场景\n\n**验证结果**：所有验证标准已满足，代码质量良好。",
+      "completedAt": "2025-11-11T03:20:49.708Z"
+    },
+    {
+      "id": "608a44d0-d047-4bef-80ea-26e60b13b1fa",
+      "name": "修改 LLMConfigManager 支持自定义 baseUrl",
+      "description": "在 src/services/llmConfigManager.ts 的 updateConfig 方法中，修改配置构建逻辑，支持从 modelInfo.customBaseUrl 读取自定义 API 端点。如果模型定义了 customBaseUrl，则使用自定义端点；否则使用默认的 OpenRouter 端点。",
+      "notes": "这是运行时配置管理的核心变更，确保所有调用 getCurrentConfig() 的服务都能获取正确的 baseUrl。testConnection 方法无需修改，会自动使用更新后的配置。",
+      "status": "completed",
+      "dependencies": [
+        {
+          "taskId": "092c5f51-7ba4-4ade-a590-9fa672141fa4"
+        }
+      ],
+      "createdAt": "2025-11-11T03:16:24.300Z",
+      "updatedAt": "2025-11-11T03:24:05.258Z",
+      "relatedFiles": [
+        {
+          "path": "src/services/llmConfigManager.ts",
+          "type": "TO_MODIFY",
+          "description": "LLM 配置管理器，负责配置的加载、更新和连接测试",
+          "lineStart": 89,
+          "lineEnd": 138
+        },
+        {
+          "path": "src/services/modelRegistry.ts",
+          "type": "DEPENDENCY",
+          "description": "依赖 ModelDefinition 接口的 customBaseUrl 字段"
+        }
+      ],
+      "implementationGuide": "修改 updateConfig 方法中的配置构建部分（约第107-113行）：\n\npseudocode:\n  const newConfig: LLMConfig = {\n    apiKey: settings.apiKey,\n    baseUrl: modelInfo.customBaseUrl || 'https://openrouter.ai/api/v1', // 优先使用自定义端点\n    model: modelInfo.openRouterModel,\n    temperature: settings.customConfig?.temperature ?? modelInfo.defaultConfig.temperature,\n    maxTokens: settings.customConfig?.maxTokens ?? modelInfo.defaultConfig.maxTokens\n  };\n\n核心逻辑：使用逻辑或运算符 (||) 实现回退机制，优先使用 customBaseUrl，不存在时使用默认值。",
+      "verificationCriteria": "1. 选择 Gemini 2.5 Flash (Local) 模型时，getCurrentConfig().baseUrl 返回 'http://localhost:3000/v1'\n2. 选择其他模型时，getCurrentConfig().baseUrl 返回 'https://openrouter.ai/api/v1'\n3. 执行配置更新后，getConfigSummary() 返回正确的模型信息\n4. 无 TypeScript 编译错误",
+      "analysisResult": "配置本地 Gemini 2.5 Flash API 对接，支持自定义 API 端点和认证方式，实现与 GPT-4o、DeepSeek V3、Claude Sonnet 4.5 一致的前端模型切换体验。核心目标：扩展现有架构，支持自定义 baseUrl 和认证格式，不破坏现有功能，确保安全性（API Key 从环境变量读取）。",
+      "summary": "✅ 任务完成，成功修改 LLMConfigManager 支持自定义 baseUrl。\n\n**完成内容**：\n1. ✅ 修改 updateConfig 方法，使用 modelInfo.customBaseUrl || 默认值 的逻辑\n2. ✅ Gemini 模型将使用 'http://localhost:3000/v1' 作为 baseUrl\n3. ✅ 其他模型（GPT-4o, DeepSeek, Claude）继续使用 'https://openrouter.ai/api/v1'\n4. ✅ TypeScript 编译通过，无类型错误\n5. ✅ 增强日志输出，添加 API 端点信息便于调试\n\n**实施细节**：\n- 修改位置：llmConfigManager.ts 第 109 行\n- 核心逻辑：baseUrl: modelInfo.customBaseUrl || 'https://openrouter.ai/api/v1'\n- 使用逻辑或运算符实现回退机制，确保向后兼容\n- testConnection 方法无需修改，自动使用更新后的 baseUrl\n\n**验证结果**：满足所有验证标准，代码质量良好，日志清晰。",
+      "completedAt": "2025-11-11T03:24:05.252Z"
+    },
+    {
+      "id": "c55b2848-4477-4eb7-975e-675e87894300",
+      "name": "放宽前端 API Key 验证逻辑",
+      "description": "修改 src/services/settingsService.ts 中的 validateLLMSettings 方法，放宽 API Key 格式验证。对于标记为 requiresCustomAuth 的模型，跳过 'sk-' 前缀检查；对于标准 OpenRouter 模型，保持现有验证逻辑。",
+      "notes": "前端和后端的 settingsService 验证逻辑需保持一致。此任务仅修改前端验证，后端验证在下一个任务中处理。",
+      "status": "completed",
+      "dependencies": [
+        {
+          "taskId": "092c5f51-7ba4-4ade-a590-9fa672141fa4"
+        }
+      ],
+      "createdAt": "2025-11-11T03:16:24.300Z",
+      "updatedAt": "2025-11-11T03:25:58.320Z",
+      "relatedFiles": [
+        {
+          "path": "src/services/settingsService.ts",
+          "type": "TO_MODIFY",
+          "description": "前端设置服务，负责 localStorage 配置管理和验证",
+          "lineStart": 132,
+          "lineEnd": 175
+        },
+        {
+          "path": "src/services/modelRegistry.ts",
+          "type": "DEPENDENCY",
+          "description": "需要读取 ModelDefinition 的 requiresCustomAuth 字段"
+        }
+      ],
+      "implementationGuide": "修改 validateLLMSettings 方法中的 API Key 验证部分（约第151-162行）：\n\npseudocode:\n  // 验证API密钥\n  if (!settings.apiKey || settings.apiKey.trim() === '') {\n    errors.push({\n      field: 'apiKey',\n      message: 'API密钥不能为空',\n      code: 'REQUIRED'\n    });\n  } else {\n    const model = modelRegistry.getModelById(settings.selectedModelId);\n    // 只对标准 OpenRouter 模型进行 sk- 格式验证\n    if (!model?.requiresCustomAuth && !settings.apiKey.startsWith('sk-')) {\n      errors.push({\n        field: 'apiKey',\n        message: 'OpenRouter API密钥必须以 sk- 开头',\n        code: 'INVALID_FORMAT'\n      });\n    }\n  }\n\n核心逻辑：通过检查 model.requiresCustomAuth 来决定是否应用严格的格式验证。",
+      "verificationCriteria": "1. 选择 Gemini 模型时，输入任意格式的 API Key（如 '123456'）验证通过\n2. 选择 GPT-4o 模型时，输入非 'sk-' 开头的 API Key 验证失败\n3. 空 API Key 始终验证失败\n4. 验证错误信息准确清晰",
+      "analysisResult": "配置本地 Gemini 2.5 Flash API 对接，支持自定义 API 端点和认证方式，实现与 GPT-4o、DeepSeek V3、Claude Sonnet 4.5 一致的前端模型切换体验。核心目标：扩展现有架构，支持自定义 baseUrl 和认证格式，不破坏现有功能，确保安全性（API Key 从环境变量读取）。",
+      "summary": "✅ 任务完成，成功放宽前端 API Key 验证逻辑，支持自定义认证格式。修改了 validateLLMSettings 方法，添加了模型类型检查，对 requiresCustomAuth 模型跳过 sk- 前缀验证，对标准 OpenRouter 模型保持严格验证。TypeScript 编译通过，逻辑清晰，错误提示准确。",
+      "completedAt": "2025-11-11T03:25:58.314Z"
+    },
+    {
+      "id": "98678480-2372-4aab-9184-c7846358e1e9",
+      "name": "放宽后端 API Key 验证逻辑",
+      "description": "修改 server/services/settingsService.ts 中的 validateLLMSettings 方法，与前端保持一致的验证逻辑。对于 requiresCustomAuth 模型，跳过 'sk-' 前缀检查。",
+      "notes": "后端验证是最后的防线，确保数据库存储的配置有效。测试时需要同时验证前端和后端的验证逻辑。",
+      "status": "completed",
+      "dependencies": [
+        {
+          "taskId": "092c5f51-7ba4-4ade-a590-9fa672141fa4"
+        }
+      ],
+      "createdAt": "2025-11-11T03:16:24.300Z",
+      "updatedAt": "2025-11-11T03:27:20.920Z",
+      "relatedFiles": [
+        {
+          "path": "server/services/settingsService.ts",
+          "type": "TO_MODIFY",
+          "description": "后端设置服务，负责数据库配置管理和验证",
+          "lineStart": 79,
+          "lineEnd": 151
+        },
+        {
+          "path": "src/services/modelRegistry.ts",
+          "type": "DEPENDENCY",
+          "description": "后端需要导入 modelRegistry 以读取模型信息"
+        }
+      ],
+      "implementationGuide": "修改 BackendSettingsService 类的 validateLLMSettings 方法（约第79-151行）：\n\npseudocode:\n  // 验证API密钥\n  if (!settings.apiKey || settings.apiKey.trim() === '') {\n    errors.push({\n      field: 'apiKey',\n      message: 'API密钥不能为空',\n      code: 'REQUIRED'\n    });\n  } else {\n    const model = modelRegistry.getModelById(settings.selectedModelId);\n    // 只对标准 OpenRouter 模型进行 sk- 格式验证\n    if (!model?.requiresCustomAuth && !settings.apiKey.startsWith('sk-')) {\n      errors.push({\n        field: 'apiKey',\n        message: 'OpenRouter API密钥必须以 sk- 开头',\n        code: 'INVALID_FORMAT'\n      });\n    }\n  }\n\n与前端验证保持完全一致的逻辑。",
+      "verificationCriteria": "1. 通过 POST /api/config/llm 提交 Gemini 配置（自定义 API Key）验证通过\n2. 通过 POST /api/config/llm 提交 GPT-4o 配置（非 sk- 前缀）验证失败\n3. 验证错误响应格式正确（validationErrors 字段）\n4. 数据库成功保存有效配置",
+      "analysisResult": "配置本地 Gemini 2.5 Flash API 对接，支持自定义 API 端点和认证方式，实现与 GPT-4o、DeepSeek V3、Claude Sonnet 4.5 一致的前端模型切换体验。核心目标：扩展现有架构，支持自定义 baseUrl 和认证格式，不破坏现有功能，确保安全性（API Key 从环境变量读取）。",
+      "summary": "✅ 任务完成，成功修改后端 API Key 验证逻辑，与前端保持一致。后端验证现在支持自定义认证格式，对 requiresCustomAuth 模型跳过 sk- 前缀检查，确保前后端验证逻辑统一。TypeScript 编译通过，代码质量良好。",
+      "completedAt": "2025-11-11T03:27:20.913Z"
+    },
+    {
+      "id": "c41a8fa9-6aa9-4c6e-acd9-bc1ef046705c",
+      "name": "添加环境变量配置文档",
+      "description": "在 .env.example 文件中添加 Gemini 本地 API 的配置示例，包括 GEMINI_LOCAL_BASE_URL 和 GEMINI_LOCAL_API_KEY。提供清晰的注释说明用途和安全注意事项。",
+      "notes": "这是文档任务，不涉及代码逻辑。确保用户理解如何配置本地 API 认证。实际的 .env 文件由用户创建，不提交到仓库。",
+      "status": "completed",
+      "dependencies": [],
+      "createdAt": "2025-11-11T03:16:24.300Z",
+      "updatedAt": "2025-11-11T03:29:15.660Z",
+      "relatedFiles": [
+        {
+          "path": ".env.example",
+          "type": "TO_MODIFY",
+          "description": "环境变量配置示例文件，提供给用户参考",
+          "lineStart": 1,
+          "lineEnd": 38
+        },
+        {
+          "path": ".gitignore",
+          "type": "REFERENCE",
+          "description": "确认 .env 文件已被排除，保护敏感信息"
+        }
+      ],
+      "implementationGuide": "在 .env.example 文件的 AI 服务配置部分（约第6-11行之后）添加：\n\n# 🤖 本地 Gemini API 配置（可选）\nGEMINI_LOCAL_BASE_URL=http://localhost:3000/v1\nGEMINI_LOCAL_API_KEY=your_local_api_key_here\n\n# 安全提示：\n# - GEMINI_LOCAL_API_KEY 替换为实际的认证密钥\n# - 生产环境请使用强密码，避免使用默认值\n# - .env 文件已在 .gitignore 中排除，不会提交到版本控制\n\n注释清晰说明配置用途和安全性。",
+      "verificationCriteria": "1. .env.example 包含 GEMINI_LOCAL_BASE_URL 和 GEMINI_LOCAL_API_KEY 配置项\n2. 注释清晰说明配置用途\n3. 包含安全提示\n4. 格式与现有配置项一致",
+      "analysisResult": "配置本地 Gemini 2.5 Flash API 对接，支持自定义 API 端点和认证方式，实现与 GPT-4o、DeepSeek V3、Claude Sonnet 4.5 一致的前端模型切换体验。核心目标：扩展现有架构，支持自定义 baseUrl 和认证格式，不破坏现有功能，确保安全性（API Key 从环境变量读取）。",
+      "summary": "✅ 任务完成，成功添加 Gemini 本地 API 环境变量配置文档。在 .env.example 中添加了 GEMINI_LOCAL_BASE_URL 和 GEMINI_LOCAL_API_KEY 配置项，包含清晰的用途说明和全面的安全提示。格式与现有配置一致，.env 文件已在 .gitignore 中排除，确保敏感信息安全。",
+      "completedAt": "2025-11-11T03:29:15.652Z"
+    },
+    {
+      "id": "144733b5-2933-439c-95ea-8abfd6e1392c",
+      "name": "优化前端设置页面的 API Key 提示文案",
+      "description": "在 src/pages/Settings.tsx 中，根据选择的模型动态显示 API Key 获取提示。对于 requiresCustomAuth 的模型，显示自定义提示；对于标准 OpenRouter 模型，显示 OpenRouter 链接。",
+      "notes": "这是用户体验优化任务，可选实现。如果时间紧张可跳过，不影响核心功能。建议在所有核心功能完成后实施。",
+      "status": "completed",
+      "dependencies": [
+        {
+          "taskId": "092c5f51-7ba4-4ade-a590-9fa672141fa4"
+        }
+      ],
+      "createdAt": "2025-11-11T03:16:24.300Z",
+      "updatedAt": "2025-11-11T03:30:19.049Z",
+      "relatedFiles": [
+        {
+          "path": "src/pages/Settings.tsx",
+          "type": "TO_MODIFY",
+          "description": "设置页面 UI 组件",
+          "lineStart": 532,
+          "lineEnd": 552
+        },
+        {
+          "path": "src/services/modelRegistry.ts",
+          "type": "DEPENDENCY",
+          "description": "读取 ModelDefinition 的 requiresCustomAuth 和 provider 字段"
+        }
+      ],
+      "implementationGuide": "修改 Settings.tsx 中 API 密钥输入框下方的提示文案（约第549-551行）：\n\npseudocode:\n  <p className=\"mt-1 text-sm text-gray-500\">\n    {selectedModel?.requiresCustomAuth \n      ? `从 ${selectedModel.provider} 获取认证密钥（参考项目文档配置）` \n      : (\n        <>\n          从 <a href=\"https://openrouter.ai\" target=\"_blank\" rel=\"noopener noreferrer\" className=\"text-blue-600 hover:underline\">OpenRouter</a> 获取 API 密钥\n        </>\n      )\n    }\n  </p>\n\n核心逻辑：根据 selectedModel.requiresCustomAuth 动态渲染不同的提示内容。",
+      "verificationCriteria": "1. 选择 Gemini 模型时，显示 '从 Google (Local) 获取认证密钥（参考项目文档配置）'\n2. 选择 GPT-4o 模型时，显示 '从 OpenRouter 获取 API 密钥' 及链接\n3. 提示文案清晰易懂\n4. 样式与现有 UI 一致",
+      "analysisResult": "配置本地 Gemini 2.5 Flash API 对接，支持自定义 API 端点和认证方式，实现与 GPT-4o、DeepSeek V3、Claude Sonnet 4.5 一致的前端模型切换体验。核心目标：扩展现有架构，支持自定义 baseUrl 和认证格式，不破坏现有功能，确保安全性（API Key 从环境变量读取）。",
+      "summary": "✅ 任务完成，成功优化前端设置页面的 API Key 提示文案。实现了根据模型类型动态显示不同提示：对于 requiresCustomAuth 模型显示自定义提示（如 Gemini Local），对于标准 OpenRouter 模型显示 OpenRouter 链接。提升了用户体验，提示清晰准确。TypeScript 编译通过，UI 样式一致。",
+      "completedAt": "2025-11-11T03:30:19.041Z"
+    }
+  ]
+}

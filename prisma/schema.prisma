@@ -1,0 +1,569 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model ai_prompts {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(255)
+  version    Int
+  template   String    @db.Text
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  ai_runs    ai_runs[]
+
+  @@unique([name, version], map: "name")
+}
+
+model ai_runs {
+  id          Int        @id @default(autoincrement())
+  prompt_id   Int
+  run_id      Int?
+  token_used  Int?
+  cost_usd    Decimal?   @db.Decimal(10, 6)
+  executed_at DateTime?  @default(now()) @db.Timestamp(0)
+  ai_prompts  ai_prompts @relation(fields: [prompt_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "ai_runs_ibfk_1")
+  test_runs   test_runs? @relation(fields: [run_id], references: [id], onUpdate: NoAction, map: "ai_runs_ibfk_2")
+
+  @@index([prompt_id], map: "prompt_id")
+  @@index([run_id], map: "run_id")
+}
+
+model api_tokens {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  token_hash String    @db.VarChar(255)
+  scopes     Json?
+  expires_at DateTime? @db.Timestamp(0)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "api_tokens_ibfk_1")
+
+  @@index([user_id], map: "user_id")
+}
+
+model attachments {
+  id               Int              @id @default(autoincrement())
+  run_result_id    Int
+  file_key         String           @db.VarChar(1024)
+  mime_type        String?          @db.VarChar(100)
+  size_bytes       BigInt?
+  created_at       DateTime?        @default(now()) @db.Timestamp(0)
+  test_run_results test_run_results @relation(fields: [run_result_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "attachments_ibfk_1")
+
+  @@index([run_result_id], map: "run_result_id")
+}
+
+model audit_logs {
+  id          BigInt    @id @default(autoincrement())
+  user_id     Int?
+  action      String    @db.VarChar(100)
+  target_type String?   @db.VarChar(50)
+  target_id   BigInt?
+  meta        Json?
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  users       users?    @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "audit_logs_ibfk_1")
+
+  @@index([user_id], map: "user_id")
+}
+
+model feature_flags {
+  flag_name          String    @id @db.VarChar(100)
+  is_enabled         Boolean?  @default(false)
+  rollout_percentage Int?      @db.UnsignedTinyInt
+  updated_at         DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model job_logs {
+  id         BigInt          @id @default(autoincrement())
+  job_name   String          @db.VarChar(255)
+  status     job_logs_status
+  message    String?         @db.Text
+  started_at DateTime?       @db.Timestamp(0)
+  ended_at   DateTime?       @db.Timestamp(0)
+}
+
+model metrics_daily {
+  metric_date     DateTime @db.Date
+  suite_id        Int
+  pass_rate       Decimal? @db.Decimal(5, 2)
+  avg_duration_ms Int?
+
+  @@id([metric_date, suite_id])
+}
+
+model reports {
+  id           Int       @id @default(autoincrement())
+  run_id       Int
+  summary      Json?
+  generated_at DateTime? @default(now()) @db.Timestamp(0)
+  test_runs    test_runs @relation(fields: [run_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "reports_ibfk_1")
+
+  @@index([run_id], map: "run_id")
+}
+
+model roles {
+  id         Int          @id @default(autoincrement())
+  name       String       @unique(map: "name") @db.VarChar(50)
+  user_roles user_roles[]
+}
+
+model settings {
+  key        String    @id @db.VarChar(255)
+  value      String?   @db.Text
+  updated_at DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model step_screenshots {
+  id               Int                     @id @default(autoincrement())
+  run_id           String                  @db.VarChar(255)
+  test_case_id     Int?
+  step_index       String                  @db.VarChar(50)
+  step_description String?                 @db.Text
+  status           step_screenshots_status
+  file_path        String                  @db.VarChar(1024)
+  file_name        String                  @db.VarChar(255)
+  file_size        BigInt?
+  mime_type        String?                 @default("image/png") @db.VarChar(100)
+  created_at       DateTime?               @default(now()) @db.Timestamp(0)
+  file_exists      Boolean                 @default(true)
+  test_cases       test_cases?             @relation(fields: [test_case_id], references: [id])
+
+  @@index([created_at], map: "idx_created_at")
+  @@index([run_id], map: "idx_run_id")
+  @@index([test_case_id], map: "idx_test_case_id")
+}
+
+model suite_case_map {
+  suite_id    Int
+  case_id     Int
+  test_suites test_suites @relation(fields: [suite_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "suite_case_map_ibfk_1")
+  test_cases  test_cases  @relation(fields: [case_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "suite_case_map_ibfk_2")
+
+  @@id([suite_id, case_id])
+  @@index([case_id], map: "case_id")
+}
+
+model test_cases {
+  id               Int                @id @default(autoincrement())
+  title            String             @db.VarChar(255)
+  steps            Json?
+  tags             Json?
+  system           String?            @db.VarChar(100)
+  module           String?            @db.VarChar(100)
+  department       String?            @db.VarChar(100)
+  created_at       DateTime?          @default(now()) @db.Timestamp(0)
+  step_screenshots step_screenshots[]
+  suite_case_map   suite_case_map[]
+  test_run_results test_run_results[]
+  // 🔥 新增：AI批量更新功能关联
+  case_versions    case_versions[]
+  patch_proposals  case_patch_proposals[]
+  // 🔥 新增：测试用例执行记录关联
+  test_case_executions test_case_executions[]
+}
+
+model test_run_results {
+  id             Int                     @id @default(autoincrement())
+  run_id         Int
+  case_id        Int
+  status         test_run_results_status
+  duration_ms    Int?
+  screenshot_url String?                 @db.VarChar(1024)
+  executed_at    DateTime?               @default(now()) @db.Timestamp(0)
+  attachments    attachments[]
+  test_runs      test_runs               @relation(fields: [run_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "test_run_results_ibfk_1")
+  test_cases     test_cases              @relation(fields: [case_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "test_run_results_ibfk_2")
+
+  @@index([case_id], map: "case_id")
+  @@index([run_id], map: "run_id")
+}
+
+model test_runs {
+  id               Int                @id @default(autoincrement())
+  suite_id         Int
+  trigger_user_id  Int
+  status           test_runs_status
+  started_at       DateTime?          @db.Timestamp(0)
+  finished_at      DateTime?          @db.Timestamp(0)
+  ai_runs          ai_runs[]
+  reports          reports[]
+  test_run_results test_run_results[]
+  test_suites      test_suites        @relation(fields: [suite_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "test_runs_ibfk_1")
+  users            users              @relation(fields: [trigger_user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "test_runs_ibfk_2")
+
+  @@index([suite_id], map: "suite_id")
+  @@index([trigger_user_id], map: "trigger_user_id")
+}
+
+model test_suites {
+  id             Int              @id @default(autoincrement())
+  name           String           @db.VarChar(255)
+  owner_id       Int
+  department     String?          @db.VarChar(100)
+  metadata       Json?
+  created_at     DateTime?        @default(now()) @db.Timestamp(0)
+  suite_case_map suite_case_map[]
+  test_runs      test_runs[]
+  users          users            @relation(fields: [owner_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "test_suites_ibfk_1")
+
+  @@index([owner_id], map: "owner_id")
+}
+
+model user_roles {
+  user_id Int
+  role_id Int
+  users   users @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_roles_ibfk_1")
+  roles   roles @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_roles_ibfk_2")
+
+  @@id([user_id, role_id])
+  @@index([role_id], map: "role_id")
+}
+
+model users {
+  id              Int           @id @default(autoincrement())
+  email           String        @unique(map: "email") @db.VarChar(255)
+  username        String        @unique(map: "username") @db.VarChar(100)
+  account_name    String?       @db.VarChar(100)
+  password_hash   String        @db.VarChar(255)
+  department      String?       @db.VarChar(100)
+  is_super_admin  Boolean       @default(false)
+  created_at      DateTime?     @default(now()) @db.Timestamp(0)
+  api_tokens      api_tokens[]
+  audit_logs      audit_logs[]
+  test_runs       test_runs[]
+  test_suites     test_suites[]
+  user_roles      user_roles[]
+  // 🔥 新增：AI批量更新功能关联
+  case_versions       case_versions[]
+  bulk_edit_sessions  bulk_edit_sessions[]
+  // 🔥 新增：测试用例执行记录关联
+  test_case_executions test_case_executions[]
+  // 🔥 新增：功能测试用例关联
+  functional_test_cases    functional_test_cases[]
+  ai_generation_sessions   ai_generation_sessions[]
+}
+
+enum job_logs_status {
+  STARTED
+  SUCCESS
+  FAILED
+}
+
+enum test_run_results_status {
+  PASSED
+  FAILED
+  SKIPPED
+}
+
+enum test_runs_status {
+  PENDING
+  RUNNING
+  PASSED
+  FAILED
+  CANCELLED
+}
+
+enum step_screenshots_status {
+  success
+  failed
+  error
+  completed
+}
+
+model run_artifacts {
+  id         Int       @id @default(autoincrement())
+  runId      String    @db.VarChar(255)
+  type       String    @db.VarChar(50)
+  filename   String    @db.VarChar(255)
+  size       BigInt
+  createdAt  DateTime  @default(now()) @db.Timestamp(0)
+
+  @@index([runId], map: "idx_run_id")
+  @@index([createdAt], map: "idx_created_at")
+}
+
+// 🔥 新增：AI批量更新功能相关表
+
+// 用例版本表（用于版本控制与回滚）
+model case_versions {
+  id         Int       @id @default(autoincrement())
+  case_id    Int
+  version    Int
+  steps      Json?
+  tags       Json?
+  system     String?   @db.VarChar(100)
+  module     String?   @db.VarChar(100)
+  meta       Json?
+  created_by Int?
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  test_cases test_cases @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  users      users?     @relation(fields: [created_by], references: [id], onDelete: SetNull)
+
+  @@unique([case_id, version])
+  @@index([case_id])
+  @@index([created_at])
+}
+
+// 批量编辑会话表
+model bulk_edit_sessions {
+  id              Int       @id @default(autoincrement())
+  system          String    @db.VarChar(100)
+  module          String    @db.VarChar(100)
+  tag_filter      Json?
+  priority_filter String?   @db.VarChar(50)
+  change_brief    String    @db.Text
+  status          bulk_edit_sessions_status @default(dry_run)
+  created_by      Int
+  created_at      DateTime? @default(now()) @db.Timestamp(0)
+  applied_at      DateTime? @db.Timestamp(0)
+  users           users     @relation(fields: [created_by], references: [id], onDelete: Cascade)
+  proposals       case_patch_proposals[]
+
+  @@index([created_by])
+  @@index([status])
+  @@index([created_at])
+}
+
+// AI提案表（存储具体的修改建议）
+model case_patch_proposals {
+  id             Int       @id @default(autoincrement())
+  session_id     Int
+  case_id        Int
+  diff_json      Json
+  ai_rationale   String?   @db.Text
+  side_effects   Json?
+  risk_level     proposal_risk_level @default(medium)
+  recall_reason  String?   @db.VarChar(255)
+  old_hash       String    @db.VarChar(255)
+  new_hash       String?   @db.VarChar(255)
+  apply_status   proposal_apply_status @default(pending)
+  created_at     DateTime? @default(now()) @db.Timestamp(0)
+  applied_at     DateTime? @db.Timestamp(0)
+  session        bulk_edit_sessions @relation(fields: [session_id], references: [id], onDelete: Cascade)
+  test_cases     test_cases @relation(fields: [case_id], references: [id], onDelete: Cascade)
+
+  @@index([session_id])
+  @@index([case_id])
+  @@index([apply_status])
+}
+
+// 新增枚举类型
+enum bulk_edit_sessions_status {
+  dry_run
+  applied
+  cancelled
+  failed
+}
+
+enum proposal_risk_level {
+  low
+  medium  
+  high
+}
+
+enum proposal_apply_status {
+  pending
+  applied
+  skipped
+  conflicted
+}
+
+// 🔥 新增：测试用例执行记录表（单个测试用例执行）
+model test_case_executions {
+  id                  String                        @id @db.VarChar(255) // UUID
+  test_case_id        Int
+  test_case_title     String                        @db.VarChar(255) // 冗余存储，避免JOIN
+  environment         String                        @default("default") @db.VarChar(100)
+  execution_mode      String                        @default("standard") @db.VarChar(50)
+  status              test_case_execution_status    @default(queued)
+
+  // 执行者信息（数据隔离）
+  executor_user_id    Int?
+  executor_department String?                       @db.VarChar(100)
+
+  // 时间信息
+  queued_at           DateTime                      @default(now()) @db.Timestamp(0)
+  started_at          DateTime?                     @db.Timestamp(0)
+  finished_at         DateTime?                     @db.Timestamp(0)
+  duration_ms         Int?
+
+  // 执行统计
+  total_steps         Int                           @default(0)
+  completed_steps     Int                           @default(0)
+  passed_steps        Int                           @default(0)
+  failed_steps        Int                           @default(0)
+  progress            Int                           @default(0) @db.TinyInt // 0-100
+
+  // 错误信息
+  error_message       String?                       @db.Text
+
+  // 关联数据（JSON存储）
+  execution_logs      Json?                         // 执行日志
+  screenshots         Json?                         // 截图路径列表
+  artifacts           Json?                         // 产物信息
+  metadata            Json?                         // 其他元数据
+
+  // 关联关系
+  test_cases          test_cases?                   @relation(fields: [test_case_id], references: [id], onDelete: Cascade)
+  users               users?                        @relation(fields: [executor_user_id], references: [id], onDelete: SetNull)
+
+  // 索引优化
+  @@index([test_case_id])
+  @@index([executor_user_id])
+  @@index([executor_department])
+  @@index([status])
+  @@index([queued_at])
+  @@index([started_at])
+  @@index([finished_at])
+}
+
+// 测试用例执行状态枚举
+enum test_case_execution_status {
+  queued
+  running
+  completed
+  failed
+  cancelled
+  error
+}
+
+// 🔥 更新 test_cases 表，添加执行记录关联
+// （注意：这个修改需要在上面的 test_cases model 中添加）
+
+// 🔥 新增：功能测试用例表（与UI自动化测试用例test_cases分离）
+model functional_test_cases {
+  id                Int                           @id @default(autoincrement())
+  name              String                        @db.VarChar(255)
+  description       String?                       @db.Text
+  system            String?                       @db.VarChar(100)
+  module            String?                       @db.VarChar(100)
+  priority          functional_test_priority      @default(medium)
+  tags              String?                       @db.VarChar(500)
+  status            functional_test_status        @default(PUBLISHED)
+  source            functional_test_source        @default(MANUAL)
+  ai_session_id     String?                       @db.VarChar(100)
+  creator_id        Int
+  test_type         String?                       @db.VarChar(50)
+  preconditions     String?                       @db.Text
+  test_data         String?                       @db.Text
+
+  // 新增字段：章节信息（用于分批追踪）
+  section_id        String?                       @db.VarChar(50)
+  section_name      String?                       @db.VarChar(255)
+  batch_number      Int?                          @default(0)
+
+  // 新增字段：覆盖范围
+  coverage_areas    String?                       @db.VarChar(500)
+
+  created_at        DateTime                      @default(now()) @db.Timestamp(0)
+  updated_at        DateTime                      @updatedAt @db.Timestamp(0)
+
+  users             users                         @relation(fields: [creator_id], references: [id], onDelete: Cascade)
+  test_points       functional_test_points[]      // 关联测试点表
+
+  @@index([system])
+  @@index([module])
+  @@index([creator_id])
+  @@index([ai_session_id])
+  @@index([source])
+  @@index([section_id])
+  @@index([batch_number])
+}
+
+// 🔥 新增：功能测试点表（独立存储每个测试点）
+model functional_test_points {
+  id                  Int                      @id @default(autoincrement())
+  test_case_id        Int                      // 关联的测试用例ID
+  test_point_index    Int                      // 测试点序号(1,2,3...)
+  test_purpose        String?                  @db.VarChar(500) // 🆕 测试目的（每个测试点都有）
+  test_point_name     String                   @db.VarChar(500) // 测试点名称
+  steps               String                   @db.Text // 测试步骤
+  expected_result     String                   @db.Text // 预期结果
+  risk_level          test_point_risk_level    @default(medium) // 风险级别
+  created_at          DateTime                 @default(now()) @db.Timestamp(0)
+  updated_at          DateTime                 @updatedAt @db.Timestamp(0)
+
+  // 关联关系
+  functional_test_case functional_test_cases  @relation(fields: [test_case_id], references: [id], onDelete: Cascade)
+
+  @@index([test_case_id])
+  @@index([test_point_index])
+  @@index([test_purpose]) // 🆕 添加索引，方便按测试目的查询和分组
+  @@unique([test_case_id, test_point_index]) // 同一用例下测试点序号唯一
+}
+
+// 测试点风险级别枚举
+enum test_point_risk_level {
+  low
+  medium
+  high
+}
+
+// AI生成会话表
+model ai_generation_sessions {
+  id                    String    @id @db.VarChar(100)
+  user_id               Int
+  axure_filename        String    @db.VarChar(255)
+  axure_file_size       Int
+  project_name          String?   @db.VarChar(255)
+  system_type           String?   @db.VarChar(50)
+  business_domain       String?   @db.VarChar(100)
+  requirement_doc       String?   @db.Text
+  page_count            Int       @default(0)
+  element_count         Int       @default(0)
+  interaction_count     Int       @default(0)
+  total_generated       Int       @default(0)
+  total_saved           Int       @default(0)
+  batches               Json?
+  pre_analysis_result   Json?     // 新增：AI预分析结果
+  enhanced_data         Json?     // 新增：用户确认的增强数据
+  created_at            DateTime  @default(now()) @db.Timestamp(0)
+
+  users                 users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([created_at])
+}
+
+// 功能测试用例相关枚举类型
+enum functional_test_priority {
+  low
+  medium
+  high
+  critical
+}
+
+enum functional_test_status {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum functional_test_source {
+  MANUAL
+  AI_GENERATED
+}
+
+// 🔥 新增：系统字典表
+model systems {
+  id          Int           @id @default(autoincrement())
+  name        String        @unique @db.VarChar(100) // 系统名称（唯一）
+  description String?       @db.Text // 系统描述
+  status      system_status @default(active) // 状态（启用/禁用）
+  sort_order  Int           @default(0) // 排序顺序
+  created_at  DateTime      @default(now()) @db.Timestamp(0)
+  updated_at  DateTime      @updatedAt @db.Timestamp(0)
+
+  @@index([status])
+  @@index([sort_order])
+}
+
+// 系统状态枚举
+enum system_status {
+  active
+  inactive
+}

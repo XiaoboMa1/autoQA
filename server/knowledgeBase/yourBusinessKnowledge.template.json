@@ -1,0 +1,169 @@
+{
+  "说明": "这是业务知识补充模板，请根据你们实际系统填写后重命名为 yourBusinessKnowledge.json",
+  "填写指南": {
+    "步骤1": "删除本说明部分",
+    "步骤2": "根据你的实际业务填写各个类别的知识",
+    "步骤3": "确保每条知识的 id 唯一",
+    "步骤4": "运行导入脚本: npx tsx server/scripts/importYourKnowledge.ts"
+  },
+
+  "businessRules": [
+    {
+      "id": "br_your_001",
+      "category": "business_rule",
+      "title": "【待填写】你的核心业务规则1",
+      "content": "【待填写】详细描述这个业务规则的逻辑、计算公式、时机等。例如：\n- 触发条件：xxx\n- 执行逻辑：xxx\n- 边界情况：xxx\n- 注意事项：xxx",
+      "businessDomain": "【待填写】业务领域名称，如：订单管理、用户管理、支付结算",
+      "tags": ["【待填写】标签1", "【待填写】标签2"],
+      "metadata": {
+        "priority": "high",
+        "source": "业务需求文档",
+        "lastUpdated": "2025-01-01"
+      }
+    },
+    {
+      "id": "br_your_002",
+      "category": "business_rule",
+      "title": "【待填写】业务规则2",
+      "content": "【待填写】详细内容...",
+      "businessDomain": "【待填写】",
+      "tags": ["【待填写】"],
+      "metadata": {}
+    },
+    {
+      "注释": "建议补充20-30条业务规则，涵盖：",
+      "建议内容": [
+        "核心业务流程（如：订单流转、审批流程）",
+        "计算规则（如：金额计算、积分计算）",
+        "状态机规则（如：订单状态、审核状态）",
+        "时间规则（如：超时机制、有效期）",
+        "权限规则（如：角色权限、数据权限）"
+      ]
+    }
+  ],
+
+  "testPatterns": [
+    {
+      "id": "tp_your_001",
+      "category": "test_pattern",
+      "title": "【待填写】你的系统特有测试场景1",
+      "content": "【待填写】测试场景描述。建议格式：\n【正常场景】xxx\n【边界场景】xxx\n【异常场景】xxx\n【性能要求】xxx",
+      "businessDomain": "【待填写】",
+      "tags": ["【待填写】测试模式", "【待填写】场景类型"],
+      "metadata": {
+        "testType": "功能测试",
+        "frequency": "高频使用"
+      }
+    },
+    {
+      "id": "tp_your_002",
+      "category": "test_pattern",
+      "title": "【待填写】测试场景2",
+      "content": "【待填写】...",
+      "businessDomain": "【待填写】",
+      "tags": ["【待填写】"]
+    },
+    {
+      "注释": "建议补充10-20条测试模式，涵盖：",
+      "建议内容": [
+        "表单类操作（提交、校验、保存草稿）",
+        "查询类操作（列表、搜索、筛选、分页）",
+        "审批类操作（提交、审批、驳回、撤回）",
+        "导入导出（文件上传、数据导出）",
+        "批量操作（批量删除、批量修改）",
+        "你的系统特有场景"
+      ]
+    }
+  ],
+
+  "pitfalls": [
+    {
+      "id": "pitfall_your_001",
+      "category": "pitfall",
+      "title": "【待填写】历史踩坑点1",
+      "content": "【待填写】描述这个坑的详细情况。建议格式：\n问题：xxx\n场景：xxx\n原因：xxx\n正确做法：xxx\n测试重点：xxx",
+      "businessDomain": "【待填写】",
+      "tags": ["【待填写】bug类型", "【待填写】影响模块"],
+      "metadata": {
+        "severity": "high",
+        "occurredDate": "2024-XX-XX",
+        "bugId": "BUG-XXX",
+        "fixedVersion": "v1.2.0"
+      }
+    },
+    {
+      "id": "pitfall_your_002",
+      "category": "pitfall",
+      "title": "【待填写】踩坑点2",
+      "content": "【待填写】...",
+      "businessDomain": "【待填写】",
+      "tags": ["【待填写】"]
+    },
+    {
+      "注释": "建议补充10-20条历史踩坑点，来源：",
+      "建议来源": [
+        "生产环境P0/P1级别bug",
+        "测试遗漏导致的线上问题",
+        "用户反馈的高频问题",
+        "安全漏洞",
+        "性能问题",
+        "数据不一致问题"
+      ]
+    }
+  ],
+
+  "riskScenarios": [
+    {
+      "id": "risk_your_001",
+      "category": "risk_scenario",
+      "title": "【待填写】资损/安全风险场景1",
+      "content": "【待填写】描述风险场景。建议格式：\n场景：xxx\n触发条件：xxx\n风险影响：xxx\n测试重点：\n1. xxx\n2. xxx\n3. xxx",
+      "businessDomain": "【待填写】",
+      "tags": ["【待填写】资损", "【待填写】安全"],
+      "metadata": {
+        "riskLevel": "critical",
+        "impactAmount": "可能导致XXX损失",
+        "mitigationPlan": "防护措施说明"
+      }
+    },
+    {
+      "id": "risk_your_002",
+      "category": "risk_scenario",
+      "title": "【待填写】风险场景2",
+      "content": "【待填写】...",
+      "businessDomain": "【待填写】",
+      "tags": ["【待填写】"]
+    },
+    {
+      "注释": "建议补充5-10条资损风险场景，涵盖：",
+      "建议内容": [
+        "金额相关漏洞（负数、溢出、精度）",
+        "优惠叠加问题",
+        "权限绕过漏洞",
+        "数据泄露风险",
+        "恶意攻击场景（SQL注入、XSS、CSRF）",
+        "高并发导致的数据问题",
+        "业务逻辑漏洞"
+      ]
+    }
+  ],
+
+  "testData": [
+    {
+      "注释": "可选：补充常用测试数据",
+      "id": "td_your_001",
+      "category": "test_data",
+      "title": "【待填写】常用测试数据集",
+      "content": "【待填写】例如：\n测试手机号：13800138000\n测试邮箱：test@example.com\n边界值：最大整数、最小值、空字符串\n特殊字符：emoji、SQL注入字符、XSS脚本",
+      "businessDomain": "通用",
+      "tags": ["测试数据", "边界值"]
+    }
+  ],
+
+  "使用说明": {
+    "导入方式1": "编辑此文件后，运行 npx tsx server/scripts/importYourKnowledge.ts",
+    "导入方式2": "合并到 initialKnowledge.json，重新运行 npx tsx server/scripts/importKnowledge.ts",
+    "建议": "每次补充5-10条知识，逐步积累，避免一次性填写过多导致质量下降",
+    "质量标准": "每条知识应该清晰、准确、可操作，能够直接指导测试用例生成"
+  }
+}

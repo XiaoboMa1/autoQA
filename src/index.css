@@ -1,0 +1,6 @@
+/* Highlight.js 代码高亮样式 */
+@import 'highlight.js/styles/github.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

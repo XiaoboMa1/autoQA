@@ -1,0 +1,100 @@
+/* Login page custom styles */
+
+/* Override Ant Design Input styles for dark theme */
+.login-input .ant-input,
+.login-input .ant-input-password {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
+}
+
+.login-input .ant-input::placeholder,
+.login-input .ant-input-password input::placeholder {
+  color: rgba(192, 132, 252, 0.5) !important;
+}
+
+.login-input .ant-input:hover,
+.login-input .ant-input-password:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(168, 85, 247, 0.5) !important;
+}
+
+.login-input .ant-input:focus,
+.login-input .ant-input-password:focus,
+.login-input .ant-input-focused,
+.login-input .ant-input-password-focused {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(168, 85, 247, 1) !important;
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2) !important;
+}
+
+/* 🔥 关键修复：覆盖浏览器自动填充的默认白色背景 */
+.login-input .ant-input:-webkit-autofill,
+.login-input .ant-input:-webkit-autofill:hover,
+.login-input .ant-input:-webkit-autofill:focus,
+.login-input .ant-input:-webkit-autofill:active,
+.login-input .ant-input-password input:-webkit-autofill,
+.login-input .ant-input-password input:-webkit-autofill:hover,
+.login-input .ant-input-password input:-webkit-autofill:focus,
+.login-input .ant-input-password input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.05) inset !important;
+  -webkit-text-fill-color: white !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  background-clip: content-box !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* 确保自动填充时边框颜色正确 */
+.login-input .ant-input:-webkit-autofill {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.login-input .ant-input:-webkit-autofill:focus {
+  border-color: rgba(168, 85, 247, 1) !important;
+}
+
+/* Password visibility toggle icon */
+.login-input .ant-input-password-icon {
+  color: rgba(192, 132, 252, 0.7) !important;
+}
+
+.login-input .ant-input-password-icon:hover {
+  color: rgba(192, 132, 252, 1) !important;
+}
+
+/* Form error messages */
+.ant-form-item-explain-error {
+  color: rgba(248, 113, 113, 0.9) !important;
+}
+
+/* Alert styles for login page */
+.login-alert.ant-alert-error {
+  background: rgba(239, 68, 68, 0.1) !important;
+  border-color: rgba(248, 113, 113, 0.5) !important;
+}
+
+.login-alert.ant-alert-error .ant-alert-message {
+  color: rgba(254, 202, 202, 0.9) !important;
+}
+
+/* Login button gradient */
+.login-button.ant-btn-primary {
+  background: linear-gradient(to right, rgb(147, 51, 234), rgb(37, 99, 235)) !important;
+  border: none !important;
+  box-shadow: 0 10px 15px -3px rgba(147, 51, 234, 0.5) !important;
+}
+
+.login-button.ant-btn-primary:hover {
+  background: linear-gradient(to right, rgb(168, 85, 247), rgb(59, 130, 246)) !important;
+  box-shadow: 0 10px 15px -3px rgba(147, 51, 234, 0.7) !important;
+}
+
+.login-button.ant-btn-primary:active {
+  background: linear-gradient(to right, rgb(126, 34, 206), rgb(29, 78, 216)) !important;
+}
+
+/* Remove Ant Design's default focus outline */
+.login-input .ant-input:focus,
+.login-input .ant-input-password:focus {
+  outline: none !important;
+}
