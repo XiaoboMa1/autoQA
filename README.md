@@ -3,7 +3,7 @@
 
 ![这是图片](/screenshots/demo1.gif "demo")
 
-This project is a full-stack implementation that bridges the gap between **Design (Axure)** and **Automation (Playwright)**. Instead of manually writing test scripts, it parses HTML prototypes, uses LLMs to generate structured test cases, and executes them via the Model Context Protocol (MCP).
+This project is a Node.js and React application that integrates **Axure** prototype parsing with **Playwright** automation. It parses HTML exports to generate text-based test cases stored in MySQL. During execution, it reads these text steps, uses an LLM to translate them into JSON commands, and sends these commands to a Playwright process via Model Context Protocol (MCP).
 
 ---
 
@@ -19,22 +19,20 @@ This project is a full-stack implementation that bridges the gap between **Desig
 
 ---
 
-## 1. The Complete User Workflow
+### Phase 1: Parsing & Storage
+1.  **Upload**: The user uploads an **Axure HTML export** to the server.
+2.  **Parsing**: The backend (`axureParseService.ts`) uses `cheerio` to traverse the DOM and extract interactive elements (buttons, inputs) and text content.
+3.  **LLM Processing**: The system constructs a prompt with the parsed DOM data and sends it to an LLM. The LLM returns a JSON object containing test steps and expected results.
+4.  **Storage**: The system saves the generated test cases as text data into the MySQL database (`functional_test_cases` table).
 
-Unlike standard automation tools, this system does not start with writing code. The workflow is strictly defined as follows:
-
-### Phase 1: Ingestion & Generation
-1.  **Upload Prototype**: The user uploads an **Axure HTML export** (zip/folder) to the system.
-2.  **Parsing**: The backend (`axureParseService.ts`) uses Cheerio to extract the DOM structure, interactive elements (buttons, inputs), and annotations from the HTML.
-3.  **AI Generation**: The system sends the parsed structure to an LLM. Using RAG (Retrieval-Augmented Generation), it retrieves relevant business rules from Qdrant and generates **Functional Test Cases** (steps, expected results).
-4.  **Human Review**: The user reviews the AI-generated test cases in a "Draft" mode, edits steps if necessary, and saves them to the permanent library.
-
-### Phase 2: Execution & Feedback
-5.  **Trigger**: The user selects a test case (or a suite) to run.
-6.  **Translation**: The system converts the natural language steps (e.g., "Click the Login button") into MCP Commands.
-7.  **Execution**: The **Adaptive Scheduler** allocates a browser instance. The MCP Client drives Playwright to interact with the live web application.
-8.  **Observation**: The system streams real-time MJPEG video and logs back to the frontend via WebSocket.
-9.  **Result**: Upon failure or completion, artifacts (Screenshots, Traces, Videos) are saved for debugging.
+### Phase 2: Retrieval & Execution
+5.  **Trigger**: The user selects a test case ID. The system retrieves the text steps from the database.
+6.  **Runtime Loop**: The system iterates through the text steps. For each step:
+    *   It calls the MCP tool `browser_snapshot` to get the current simplified DOM tree.
+    *   It sends the current text step and the DOM snapshot to the LLM.
+    *   The LLM returns a JSON command (e.g., `{"name": "browser_click", "args": {"ref": "12"}}`).
+7.  **Playwright Action**: The MCP Client receives the JSON command and triggers the corresponding Playwright API via stdio.
+8.  **Feedback**: The backend captures screenshots (buffers), writes them to an HTTP response stream (MJPEG), and broadcasts logs to the frontend via WebSocket.
 
 ---
 
@@ -50,9 +48,9 @@ Unlike standard automation tools, this system does not start with writing code. 
     *   **User Quota**: Limits concurrent tasks per user to ensure fairness.
     *   **System Circuit Breaker**: Monitors Node.js Event Loop Lag and OS Free Memory in real-time. If the system is under stress (e.g., Lag > 100ms), it forcefully throttles the global concurrency limit, queuing new tasks until resources recover.
 
-### 2.3 Multi-Source Knowledge Isolation
+### 2.3 Vector Data Separation
 *   **Challenge**: When testing multiple distinct business systems (e.g., "Supply Chain" vs. "CRM"), the LLM often hallucinates by applying rules from System A to System B.
-*   **Solution**: Strict data isolation in the Vector Database. Each business system is assigned a unique Qdrant Collection (`test_knowledge_{systemName}`). During generation, the RAG retriever is strictly bound to the current system's namespace, preventing context pollution.
+*   **Implementation**: The system creates separate Collections in the Qdrant database for different business systems (named `test_knowledge_{systemName}`). When retrieving context for RAG, the system queries only the Collection matching the current project's system name, ensuring the returned business rules are relevant to the specific dataset.
 
 ---
 
