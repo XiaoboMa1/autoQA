@@ -1,7 +1,7 @@
 
-# Axure-to-Playwright QA Agent (SPA) : Automated Testing System From Axure Prototypes to Browser Execution
+# Axure-to-Playwright QA Agent (sutoQA) : Automated Testing System From Axure Prototypes to Browser Execution
 
-![这是图片](/screenshots/demo1.gif "demo")
+![这是图片](screenshots/demo1.gif "demo")
 
 This project is a Node.js and React application that integrates **Axure** prototype parsing with **Playwright** automation. It parses HTML exports to generate text-based test cases stored in MySQL. During execution, it reads these text steps, uses an LLM to translate them into JSON commands, and sends these commands to a Playwright process via Model Context Protocol (MCP).
 
