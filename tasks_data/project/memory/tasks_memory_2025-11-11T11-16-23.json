@@ -1,0 +1,290 @@
+{
+  "tasks": [
+    {
+      "id": "657f9512-8390-4c63-848b-7a371a257af9",
+      "name": "创建步骤编辑器包装组件",
+      "description": "创建 StepsEditor 组件，包装现有的 StepTableEditor，负责将数据库的 Text 格式步骤转换为表格编辑器可用的结构化数据，并在保存时转换回 Text 格式。复用 stepConverter 工具函数。",
+      "notes": "这是一个轻量级包装组件，主要功能是数据格式转换。完全复用 StepTableEditor 的 UI 和交互逻辑。",
+      "status": "completed",
+      "dependencies": [],
+      "createdAt": "2025-11-03T09:26:03.179Z",
+      "updatedAt": "2025-11-03T09:42:36.612Z",
+      "relatedFiles": [
+        {
+          "path": "src/components/StepTableEditor.tsx",
+          "type": "DEPENDENCY",
+          "description": "复用表格编辑器组件"
+        },
+        {
+          "path": "src/utils/stepConverter.ts",
+          "type": "DEPENDENCY",
+          "description": "复用步骤转换工具"
+        },
+        {
+          "path": "src/components/functional-test-case/StepsEditor.tsx",
+          "type": "CREATE",
+          "description": "新建步骤编辑器包装组件"
+        }
+      ],
+      "implementationGuide": "1. 创建文件 src/components/functional-test-case/StepsEditor.tsx\\n2. 导入依赖：StepTableEditor, parseStepsText, serializeStepsToText\\n3. Props 接口：stepsText(string), onChange((text: string) => void), readOnly(boolean)\\n4. 内部状态：使用 useState 管理 TestStepRow[]\\n5. useEffect：监听 stepsText 变化，使用 parseStepsText 解析为数组\\n6. handleChange 函数：接收 StepTableEditor 的 onChange，使用 serializeStepsToText 转换后调用父组件 onChange\\n7. 渲染 StepTableEditor，传入解析后的数组和 handleChange\\n8. 支持 readOnly 模式",
+      "verificationCriteria": "1. 组件正确渲染 StepTableEditor\\n2. 文本格式正确转换为表格数据\\n3. 表格数据修改后正确转换回文本\\n4. onChange 回调正确触发\\n5. readOnly 模式生效\\n6. 空文本和无效文本正确处理",
+      "analysisResult": "完善功能测试用例的手动创建与编辑功能。创建页面用于创建包含多个测试点的测试用例；编辑页面以测试点为维度编辑单个测试点。测试步骤字段使用表格编辑器（复用StepTableEditor），通过stepConverter工具进行文本和结构化数据的转换。",
+      "summary": "StepsEditor 组件已成功创建。这是一个轻量级包装组件，完全复用 StepTableEditor 的 UI 和交互逻辑。主要功能：1) 使用 parseStepsText 将数据库 Text 格式转换为结构化数据；2) 渲染 StepTableEditor 进行编辑；3) 使用 serializeStepsToText 将修改转换回 Text 格式并通知父组件。支持 readOnly 模式，包含错误处理。代码简洁（~60行），职责单一。",
+      "completedAt": "2025-11-03T09:42:36.605Z"
+    },
+    {
+      "id": "ff13c325-d97a-4800-b85a-90d9f4236fcd",
+      "name": "修改TestPointsEditor集成步骤编辑器",
+      "description": "修改已创建的 TestPointsEditor 组件，将测试步骤字段从 textarea 改为使用 StepsEditor 组件，支持表格形式编辑测试步骤。",
+      "notes": "这是对现有组件的修改。需要确保 steps 字段在整个数据流中保持为 string 类型。StepsEditor 内部处理格式转换。",
+      "status": "completed",
+      "dependencies": [
+        {
+          "taskId": "657f9512-8390-4c63-848b-7a371a257af9"
+        }
+      ],
+      "createdAt": "2025-11-03T09:26:03.179Z",
+      "updatedAt": "2025-11-03T10:35:16.825Z",
+      "relatedFiles": [
+        {
+          "path": "src/components/functional-test-case/TestPointsEditor.tsx",
+          "type": "TO_MODIFY",
+          "description": "修改测试点编辑器组件"
+        },
+        {
+          "path": "src/components/functional-test-case/StepsEditor.tsx",
+          "type": "DEPENDENCY",
+          "description": "依赖步骤编辑器组件"
+        }
+      ],
+      "implementationGuide": "1. 编辑文件 src/components/functional-test-case/TestPointsEditor.tsx\\n2. 导入 StepsEditor 组件\\n3. 修改 TestPoint 接口的 steps 字段类型保持为 string\\n4. 在测试点卡片中，将测试步骤的 textarea 替换为 StepsEditor 组件\\n5. 传入 props：stepsText={point.steps}, onChange={(text) => updateTestPoint(index, 'steps', text)}, readOnly={readOnly}\\n6. 调整布局：StepsEditor 需要更多垂直空间，可能需要调整卡片高度或添加折叠功能\\n7. 保持其他字段不变",
+      "verificationCriteria": "1. TestPointsEditor 正确渲染 StepsEditor\\n2. steps 字段使用表格编辑器而非文本框\\n3. 添加/删除/编辑步骤功能正常\\n4. onChange 正确传递步骤文本\\n5. 布局美观，空间充足\\n6. readOnly 模式下步骤编辑器只读",
+      "analysisResult": "完善功能测试用例的手动创建与编辑功能。创建页面用于创建包含多个测试点的测试用例；编辑页面以测试点为维度编辑单个测试点。测试步骤字段使用表格编辑器（复用StepTableEditor），通过stepConverter工具进行文本和结构化数据的转换。",
+      "summary": "TestPointsEditor 组件已成功修改。将测试步骤字段的 textarea 替换为 StepsEditor 组件。导入了 StepsEditor，并将原来的 textarea（行196-210）替换为 StepsEditor，传入正确的 props：stepsText={point.steps}, onChange={(text) => updateTestPoint(index, 'steps', text)}, readOnly={readOnly}。steps 字段保持为 string 类型，StepsEditor 内部处理格式转换。",
+      "completedAt": "2025-11-03T10:35:16.815Z"
+    },
+    {
+      "id": "188beb3d-3195-4cf2-9ea6-e673324a15b0",
+      "name": "创建测试用例创建页面",
+      "description": "创建 FunctionalTestCaseCreate.tsx 页面组件，用于创建包含多个测试点的新测试用例。使用修改后的 TestPointsEditor 管理测试点列表，每个测试点使用 StepsEditor 编辑步骤。",
+      "notes": "参考 TestCaseDetail.tsx 的布局和交互模式。system 和 module 下拉选项可以硬编码（电商系统、OA系统、CRM系统）或从 API 获取。",
+      "status": "completed",
+      "dependencies": [
+        {
+          "taskId": "ff13c325-d97a-4800-b85a-90d9f4236fcd"
+        }
+      ],
+      "createdAt": "2025-11-03T09:26:03.179Z",
+      "updatedAt": "2025-11-03T10:44:33.686Z",
+      "relatedFiles": [
+        {
+          "path": "src/pages/TestCaseDetail.tsx",
+          "type": "REFERENCE",
+          "description": "参考页面布局和交互"
+        },
+        {
+          "path": "src/components/functional-test-case/TestPointsEditor.tsx",
+          "type": "DEPENDENCY",
+          "description": "使用测试点编辑器"
+        },
+        {
+          "path": "src/pages/FunctionalTestCaseCreate.tsx",
+          "type": "CREATE",
+          "description": "新建创建页面"
+        }
+      ],
+      "implementationGuide": "1. 创建文件 src/pages/FunctionalTestCaseCreate.tsx\\n2. 页面布局参考 TestCaseDetail.tsx：顶部导航（返回+标题+保存/取消按钮）、表单卡片区域\\n3. 表单字段分组：\\n   - 基本信息：name(必填), description, system(下拉), module(下拉)\\n   - 测试配置：priority(下拉,默认medium), status(下拉,默认DRAFT), testType, tags(逗号分隔)\\n   - 测试详情：preconditions(多行), testData(多行), sectionName, coverageAreas\\n   - 测试点列表：使用 TestPointsEditor 组件\\n4. 默认值：priority=medium, status=DRAFT, testPoints 包含1个空测试点\\n5. 表单验证：name 必填不超过255字符、testPoints 至少1个且每个必填字段完整\\n6. 提交：调用 functionalTestCaseService.create，成功后跳转列表页\\n7. 取消：带确认对话框，跳转列表页",
+      "verificationCriteria": "1. 页面布局与 TestCaseDetail 风格一致\\n2. 所有表单字段正确渲染\\n3. 表单验证生效\\n4. TestPointsEditor 集成正常\\n5. 提交成功后跳转列表页\\n6. 取消带确认对话框\\n7. 错误提示清晰",
+      "analysisResult": "完善功能测试用例的手动创建与编辑功能。创建页面用于创建包含多个测试点的测试用例；编辑页面以测试点为维度编辑单个测试点。测试步骤字段使用表格编辑器（复用StepTableEditor），通过stepConverter工具进行文本和结构化数据的转换。",
+      "summary": "FunctionalTestCaseCreate 页面已成功创建。完整实现了创建功能测试用例的所有功能：1) 参考 TestCaseDetail 的页面布局（顶部导航+表单卡片）；2) 表单字段分为4个section（基本信息、测试配置、测试详情、测试点列表）；3) 集成 TestPointsEditor 组件管理测试点；4) 完整的表单验证（name必填、testPoints至少1个且必填字段完整）；5) 提交成功跳转列表页；6) 取消带确认对话框。UI风格与现有页面完全一致，使用渐变色按钮和圆角卡片。",
+      "completedAt": "2025-11-03T10:44:33.676Z"
+    },
+    {
+      "id": "0d6cd422-f337-4712-8afa-db162973a39d",
+      "name": "创建测试点编辑页面",
+      "description": "创建 FunctionalTestPointEdit.tsx 页面组件，用于编辑单个测试点的所有字段。显示关联的测试用例信息（只读），使用 StepsEditor 编辑测试步骤。",
+      "notes": "页面布局参考 TestCaseDetail。关联用例信息使用渐变背景卡片突出显示。只编辑测试点字段，不能修改用例信息。",
+      "status": "completed",
+      "dependencies": [
+        {
+          "taskId": "657f9512-8390-4c63-848b-7a371a257af9"
+        }
+      ],
+      "createdAt": "2025-11-03T09:29:35.615Z",
+      "updatedAt": "2025-11-03T10:54:21.519Z",
+      "relatedFiles": [
+        {
+          "path": "src/pages/TestCaseDetail.tsx",
+          "type": "REFERENCE",
+          "description": "参考页面布局"
+        },
+        {
+          "path": "src/components/functional-test-case/StepsEditor.tsx",
+          "type": "DEPENDENCY",
+          "description": "使用步骤编辑器"
+        },
+        {
+          "path": "src/pages/FunctionalTestPointEdit.tsx",
+          "type": "CREATE",
+          "description": "新建测试点编辑页面"
+        }
+      ],
+      "implementationGuide": "1. 创建文件 src/pages/FunctionalTestPointEdit.tsx\\n2. 使用 useParams 获取 testPointId\\n3. useEffect 加载测试点数据：调用 functionalTestCaseService.getTestPointById(testPointId)\\n4. 页面布局：顶部导航（返回+标题+保存/取消）\\n5. 关联用例信息卡片（只读，渐变背景）：显示用例名称、系统、模块、章节\\n6. 测试点表单（白色卡片）：\\n   - testPurpose(可选,500字符)\\n   - testPointName(必填,500字符)\\n   - steps(必填,使用StepsEditor)\\n   - expectedResult(必填,多行文本)\\n   - riskLevel(必填,下拉选择，带颜色)\\n7. 表单验证：必填字段和长度验证\\n8. 提交：调用 functionalTestCaseService.updateTestPoint，成功后跳转列表页",
+      "verificationCriteria": "1. 页面正确加载测试点数据\\n2. 关联用例信息正确显示\\n3. 表单字段正确填充\\n4. StepsEditor 正常工作\\n5. 表单验证生效\\n6. 提交成功后跳转列表页\\n7. 字段映射正确（snake_case转camelCase）",
+      "analysisResult": "完善功能测试用例的手动创建与编辑功能。创建页面用于创建包含多个测试点的测试用例；编辑页面以测试点为维度编辑单个测试点。",
+      "summary": "FunctionalTestPointEdit.tsx 页面已成功创建。页面使用 useParams 获取 testPointId，通过 getTestPointById 加载测试点数据和关联用例信息。顶部导航包含返回按钮、标题、取消和保存按钮。关联用例信息显示在渐变紫蓝色背景卡片中（只读），包含用例名称、系统、模块、章节。测试点表单使用白色卡片，包含 testPurpose（可选）、testPointName（必填）、steps（使用StepsEditor）、expectedResult（必填）、riskLevel（必填，带颜色选择）。实现了完整的表单验证（必填字段、长度限制）。提交时调用 updateTestPoint API，正确处理字段映射（camelCase→snake_case），成功后跳转到列表页",
+      "completedAt": "2025-11-03T10:54:21.504Z"
+    },
+    {
+      "id": "9df7e251-0259-4131-a54b-4aa2cb37c1ba",
+      "name": "后端添加创建测试用例API",
+      "description": "在 server/routes/functionalTestCase.ts 添加 POST /api/v1/functional-test-cases 端点，在服务层实现 create 方法，使用 Prisma 事务同时创建测试用例和关联的测试点。",
+      "notes": "端点位置在 GET /:id 之前。使用事务确保原子性。注意字段名称转换。",
+      "status": "completed",
+      "dependencies": [],
+      "createdAt": "2025-11-03T09:29:35.615Z",
+      "updatedAt": "2025-11-03T10:51:22.235Z",
+      "relatedFiles": [
+        {
+          "path": "server/routes/functionalTestCase.ts",
+          "type": "TO_MODIFY",
+          "description": "添加POST端点"
+        },
+        {
+          "path": "server/services/functionalTestCaseService.ts",
+          "type": "TO_MODIFY",
+          "description": "添加create方法"
+        },
+        {
+          "path": "prisma/schema.prisma",
+          "type": "REFERENCE",
+          "description": "参考数据库结构",
+          "lineStart": 438,
+          "lineEnd": 497
+        }
+      ],
+      "implementationGuide": "1. 编辑 server/routes/functionalTestCase.ts，在现有路由之前添加 POST / 端点\\n2. 验证：name必填、testPoints至少1个、每个测试点必填字段完整\\n3. 调用 functionalTestCaseService.create(data, req.user.id)\\n4. 编辑 server/services/functionalTestCaseService.ts，添加 create 方法\\n5. 使用 prisma.transaction 创建：\\n   - 创建 functional_test_cases 记录（source=MANUAL, creator_id=userId）\\n   - 批量创建 functional_test_points 记录（test_point_index从1开始）\\n6. 字段映射：camelCase转snake_case\\n7. 查询并返回包含测试点的完整数据",
+      "verificationCriteria": "1. POST端点可访问\\n2. 验证逻辑生效\\n3. 事务正确执行\\n4. 字段映射正确\\n5. 返回完整数据\\n6. 日志输出正确",
+      "analysisResult": "完善功能测试用例的手动创建与编辑功能。创建页面用于创建包含多个测试点的测试用例；编辑页面以测试点为维度编辑单个测试点。",
+      "summary": "成功添加了后端创建测试用例API。在 server/routes/functionalTestCase.ts 添加了 POST / 端点，位置在 GET /:id 之前。实现了完整的验证逻辑：验证name必填、testPoints至少1个、每个测试点的必填字段完整。在 server/services/functionalTestCaseService.ts 添加了 create 方法，使用 Prisma 事务同时创建 functional_test_cases 记录（source=MANUAL, creator_id=userId）和批量创建 functional_test_points 记录（test_point_index从1开始）。正确处理了字段映射（camelCase转snake_case）：testPointName→test_point_name, testPurpose→test_purpose, testType→test_type等。查询并返回包含测试点和用户信息的完整数据，支持前端直接使用",
+      "completedAt": "2025-11-03T10:51:22.225Z"
+    },
+    {
+      "id": "44c23d58-c416-4e43-a9a0-6fd3c9e27e10",
+      "name": "后端添加测试点CRUD API",
+      "description": "添加测试点级别的查询和更新API：GET /api/v1/functional-test-cases/test-points/:id 获取测试点详情（含用例信息），PUT /api/v1/functional-test-cases/test-points/:id 更新测试点。",
+      "notes": "测试点API独立于测试用例API。getTestPointById需要返回关联用例信息用于页面显示。",
+      "status": "completed",
+      "dependencies": [],
+      "createdAt": "2025-11-03T09:29:35.615Z",
+      "updatedAt": "2025-11-03T10:52:37.719Z",
+      "relatedFiles": [
+        {
+          "path": "server/routes/functionalTestCase.ts",
+          "type": "TO_MODIFY",
+          "description": "添加测试点API端点"
+        },
+        {
+          "path": "server/services/functionalTestCaseService.ts",
+          "type": "TO_MODIFY",
+          "description": "添加测试点服务方法"
+        }
+      ],
+      "implementationGuide": "1. 编辑 server/routes/functionalTestCase.ts\\n2. 添加 GET /test-points/:id 端点：\\n   - 调用服务层 getTestPointById(id)\\n   - 返回测试点数据+关联用例信息\\n3. 添加 PUT /test-points/:id 端点：\\n   - 验证必填字段\\n   - 调用服务层 updateTestPoint(id, data)\\n4. 编辑 server/services/functionalTestCaseService.ts\\n5. 添加 getTestPointById 方法：\\n   - 查询 functional_test_points，include 关联的 functional_test_cases\\n6. 添加 updateTestPoint 方法：\\n   - 更新 functional_test_points 记录\\n   - 字段映射",
+      "verificationCriteria": "1. GET端点返回正确数据\\n2. 关联用例信息正确\\n3. PUT端点更新成功\\n4. 字段映射正确\\n5. 验证逻辑生效",
+      "analysisResult": "完善功能测试用例的手动创建与编辑功能。创建页面用于创建包含多个测试点的测试用例；编辑页面以测试点为维度编辑单个测试点。",
+      "summary": "成功添加了测试点级别的CRUD API。在 server/routes/functionalTestCase.ts 添加了两个端点：1) GET /test-points/:id 获取测试点详情，调用 getTestPointById 并返回测试点数据和关联用例信息（id, name, system, module, section_name）；2) PUT /test-points/:id 更新测试点，完整验证了testPointName、steps、expectedResult必填字段，调用 updateTestPoint 方法。在 server/services/functionalTestCaseService.ts 添加了 getTestPointById 方法（使用 include 查询关联用例）和 updateTestPoint 方法。正确处理了字段映射（camelCase→snake_case）：testPurpose→test_purpose, testPointName→test_point_name等。测试点API独立于测试用例API，支持编辑页面单独操作测试点",
+      "completedAt": "2025-11-03T10:52:37.706Z"
+    },
+    {
+      "id": "4fd0380d-92d6-4fb5-9cf5-1bfb4c7c455e",
+      "name": "前端服务层添加API方法",
+      "description": "在 src/services/functionalTestCaseService.ts 添加 create、getTestPointById、updateTestPoint 方法，调用对应的后端API。",
+      "notes": "复用现有的认证和响应处理逻辑。方法位置保持代码组织清晰。",
+      "status": "completed",
+      "dependencies": [
+        {
+          "taskId": "9df7e251-0259-4131-a54b-4aa2cb37c1ba"
+        },
+        {
+          "taskId": "44c23d58-c416-4e43-a9a0-6fd3c9e27e10"
+        }
+      ],
+      "createdAt": "2025-11-03T09:35:14.574Z",
+      "updatedAt": "2025-11-03T10:53:40.440Z",
+      "relatedFiles": [
+        {
+          "path": "src/services/functionalTestCaseService.ts",
+          "type": "TO_MODIFY",
+          "description": "添加API方法",
+          "lineStart": 125,
+          "lineEnd": 150
+        }
+      ],
+      "implementationGuide": "1. 编辑 src/services/functionalTestCaseService.ts\\n2. 添加 create 方法（在update之后）：\\n   - POST /functional-test-cases\\n   - 使用 getAuthHeaders() 和 handleResponse()\\n3. 添加 getTestPointById 方法：\\n   - GET /functional-test-cases/test-points/${id}\\n4. 添加 updateTestPoint 方法：\\n   - PUT /functional-test-cases/test-points/${id}",
+      "verificationCriteria": "1. create方法正确发送POST请求\\n2. getTestPointById正确获取数据\\n3. updateTestPoint正确更新数据\\n4. 请求头包含认证\\n5. 响应正确处理",
+      "analysisResult": "完善功能测试用例的手动创建与编辑功能",
+      "summary": "成功在前端服务层添加了三个API方法。在 src/services/functionalTestCaseService.ts 添加：1) create方法 - POST /functional-test-cases，用于创建包含多个测试点的新测试用例；2) getTestPointById方法 - GET /functional-test-cases/test-points/${id}，获取单个测试点详情及关联用例信息；3) updateTestPoint方法 - PUT /functional-test-cases/test-points/${id}，更新单个测试点的所有字段。所有方法都复用了现有的 getAuthHeaders() 和 handleResponse() 逻辑，确保认证和错误处理的一致性。方法位置合理，create在update之前，测试点方法在batchDelete之后，保持代码组织清晰",
+      "completedAt": "2025-11-03T10:53:40.422Z"
+    },
+    {
+      "id": "b9e11001-cad3-4eab-93a1-ded15ed0632d",
+      "name": "更新路由配置",
+      "description": "在 src/App.tsx 添加创建和编辑页面的路由配置，确保路由顺序正确避免冲突。",
+      "notes": "路由顺序：列表、generator、create、test-points/:id/edit。create和generator必须在:id/edit之前。",
+      "status": "completed",
+      "dependencies": [
+        {
+          "taskId": "188beb3d-3195-4cf2-9ea6-e673324a15b0"
+        },
+        {
+          "taskId": "0d6cd422-f337-4712-8afa-db162973a39d"
+        }
+      ],
+      "createdAt": "2025-11-03T09:35:14.574Z",
+      "updatedAt": "2025-11-03T10:55:22.635Z",
+      "relatedFiles": [
+        {
+          "path": "src/App.tsx",
+          "type": "TO_MODIFY",
+          "description": "添加路由配置",
+          "lineStart": 266,
+          "lineEnd": 269
+        }
+      ],
+      "implementationGuide": "1. 编辑 src/App.tsx\\n2. 导入组件：FunctionalTestCaseCreate, FunctionalTestPointEdit\\n3. 在功能测试用例路由组添加（在generator之后）：\\n   - /functional-test-cases/create\\n   - /functional-test-cases/test-points/:testPointId/edit\\n4. 确保路由在 ProtectedRoute 内部",
+      "verificationCriteria": "1. 两个路由可访问\\n2. 路由不冲突\\n3. 路由在ProtectedRoute保护下\\n4. 导航正常",
+      "analysisResult": "完善功能测试用例的手动创建与编辑功能",
+      "summary": "成功在 src/App.tsx 添加了创建和编辑页面的路由配置。导入了 FunctionalTestCaseCreate 和 FunctionalTestPointEdit 两个组件。在功能测试用例路由组中添加了两个路由：1) /functional-test-cases/create - 创建测试用例页面；2) /functional-test-cases/test-points/:testPointId/edit - 编辑测试点页面。路由顺序正确：列表路由在最前，然后是 generator、create、test-points/:testPointId/edit，确保具体路径在参数路由之前，避免路由冲突。所有路由都在 ProtectedRoute 内部，受到认证保护。路由配置完整，支持页面导航功能",
+      "completedAt": "2025-11-03T10:55:22.619Z"
+    },
+    {
+      "id": "d7109806-fc55-45ef-9024-4ae472d4dbb0",
+      "name": "更新列表页面集成跳转",
+      "description": "更新 src/pages/FunctionalTestCases.tsx，将手动创建按钮连接到创建页面，将编辑按钮连接到测试点编辑页面。",
+      "notes": "编辑按钮跳转到测试点编辑页面，使用test_point_id。保留弹窗用于快速查看。",
+      "status": "completed",
+      "dependencies": [
+        {
+          "taskId": "b9e11001-cad3-4eab-93a1-ded15ed0632d"
+        }
+      ],
+      "createdAt": "2025-11-03T09:35:14.574Z",
+      "updatedAt": "2025-11-03T10:57:16.824Z",
+      "relatedFiles": [
+        {
+          "path": "src/pages/FunctionalTestCases.tsx",
+          "type": "TO_MODIFY",
+          "description": "更新按钮跳转逻辑",
+          "lineStart": 176,
+          "lineEnd": 310
+        }
+      ],
+      "implementationGuide": "1. 编辑 src/pages/FunctionalTestCases.tsx\\n2. 修改手动创建按钮onClick（第304行）：navigate('/functional-test-cases/create')\\n3. 修改编辑按钮（第683-694行）：navigate(`/functional-test-cases/test-points/${row.test_point_id}/edit`)\\n4. 删除 handleEdit 函数（第177-182行）或修改为跳转逻辑\\n5. 保留 TestCaseDetailModal 用于快速查看",
+      "verificationCriteria": "1. 手动创建按钮跳转正确\\n2. 编辑按钮跳转正确（带test_point_id）\\n3. 详情弹窗保留\\n4. 无控制台错误\\n5. 导航流畅",
+      "analysisResult": "完善功能测试用例的手动创建与编辑功能",
+      "summary": "成功更新了 src/pages/FunctionalTestCases.tsx 的按钮跳转逻辑。手动创建按钮（第304行）现在跳转到 '/functional-test-cases/create' 创建页面。编辑按钮（第684行）改为跳转到测试点编辑页面 `/functional-test-cases/test-points/${row.test_point_id}/edit`，使用 test_point_id 参数正确路由。保留了 TestCaseDetailModal 和 handleViewDetail 函数用于快速查看功能（虽然当前编辑按钮改为页面跳转，但详情弹窗代码保留以备将来使用）。按钮标题也更新为\"编辑测试点\"以准确反映功能。所有修改确保了页面导航流畅，用户可以通过列表页快速进入创建和编辑页面",
+      "completedAt": "2025-11-03T10:57:16.809Z"
+    }
+  ]
+}

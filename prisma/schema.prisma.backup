@@ -1,0 +1,254 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model ai_prompts {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(255)
+  version    Int
+  template   String    @db.Text
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  ai_runs    ai_runs[]
+
+  @@unique([name, version], map: "name")
+}
+
+model ai_runs {
+  id          Int        @id @default(autoincrement())
+  prompt_id   Int
+  run_id      Int?
+  token_used  Int?
+  cost_usd    Decimal?   @db.Decimal(10, 6)
+  executed_at DateTime?  @default(now()) @db.Timestamp(0)
+  ai_prompts  ai_prompts @relation(fields: [prompt_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "ai_runs_ibfk_1")
+  test_runs   test_runs? @relation(fields: [run_id], references: [id], onUpdate: NoAction, map: "ai_runs_ibfk_2")
+
+  @@index([prompt_id], map: "prompt_id")
+  @@index([run_id], map: "run_id")
+}
+
+model api_tokens {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  token_hash String    @db.VarChar(255)
+  scopes     Json?
+  expires_at DateTime? @db.Timestamp(0)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "api_tokens_ibfk_1")
+
+  @@index([user_id], map: "user_id")
+}
+
+model attachments {
+  id               Int              @id @default(autoincrement())
+  run_result_id    Int
+  file_key         String           @db.VarChar(1024)
+  mime_type        String?          @db.VarChar(100)
+  size_bytes       BigInt?
+  created_at       DateTime?        @default(now()) @db.Timestamp(0)
+  test_run_results test_run_results @relation(fields: [run_result_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "attachments_ibfk_1")
+
+  @@index([run_result_id], map: "run_result_id")
+}
+
+model audit_logs {
+  id          BigInt    @id @default(autoincrement())
+  user_id     Int?
+  action      String    @db.VarChar(100)
+  target_type String?   @db.VarChar(50)
+  target_id   BigInt?
+  meta        Json?
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  users       users?    @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "audit_logs_ibfk_1")
+
+  @@index([user_id], map: "user_id")
+}
+
+model feature_flags {
+  flag_name          String    @id @db.VarChar(100)
+  is_enabled         Boolean?  @default(false)
+  rollout_percentage Int?      @db.UnsignedTinyInt
+  updated_at         DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model job_logs {
+  id         BigInt          @id @default(autoincrement())
+  job_name   String          @db.VarChar(255)
+  status     job_logs_status
+  message    String?         @db.Text
+  started_at DateTime?       @db.Timestamp(0)
+  ended_at   DateTime?       @db.Timestamp(0)
+}
+
+model metrics_daily {
+  metric_date     DateTime @db.Date
+  suite_id        Int
+  pass_rate       Decimal? @db.Decimal(5, 2)
+  avg_duration_ms Int?
+
+  @@id([metric_date, suite_id])
+}
+
+model reports {
+  id           Int       @id @default(autoincrement())
+  run_id       Int
+  summary      Json?
+  generated_at DateTime? @default(now()) @db.Timestamp(0)
+  test_runs    test_runs @relation(fields: [run_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "reports_ibfk_1")
+
+  @@index([run_id], map: "run_id")
+}
+
+model roles {
+  id         Int          @id @default(autoincrement())
+  name       String       @unique(map: "name") @db.VarChar(50)
+  user_roles user_roles[]
+}
+
+model settings {
+  key        String    @id @db.VarChar(255)
+  value      String?   @db.Text
+  updated_at DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model suite_case_map {
+  suite_id    Int
+  case_id     Int
+  test_suites test_suites @relation(fields: [suite_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "suite_case_map_ibfk_1")
+  test_cases  test_cases  @relation(fields: [case_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "suite_case_map_ibfk_2")
+
+  @@id([suite_id, case_id])
+  @@index([case_id], map: "case_id")
+}
+
+model test_cases {
+  id               Int                @id @default(autoincrement())
+  title            String             @db.VarChar(255)
+  steps            Json?
+  tags             Json?
+  created_at       DateTime?          @default(now()) @db.Timestamp(0)
+  suite_case_map   suite_case_map[]
+  test_run_results test_run_results[]
+  step_screenshots step_screenshots[]
+}
+
+model test_run_results {
+  id             Int                     @id @default(autoincrement())
+  run_id         Int
+  case_id        Int
+  status         test_run_results_status
+  duration_ms    Int?
+  screenshot_url String?                 @db.VarChar(1024)
+  executed_at    DateTime?               @default(now()) @db.Timestamp(0)
+  attachments    attachments[]
+  test_runs      test_runs               @relation(fields: [run_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "test_run_results_ibfk_1")
+  test_cases     test_cases              @relation(fields: [case_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "test_run_results_ibfk_2")
+
+  @@index([case_id], map: "case_id")
+  @@index([run_id], map: "run_id")
+}
+
+model test_runs {
+  id               Int                @id @default(autoincrement())
+  suite_id         Int
+  trigger_user_id  Int
+  status           test_runs_status
+  started_at       DateTime?          @db.Timestamp(0)
+  finished_at      DateTime?          @db.Timestamp(0)
+  ai_runs          ai_runs[]
+  reports          reports[]
+  test_run_results test_run_results[]
+  test_suites      test_suites        @relation(fields: [suite_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "test_runs_ibfk_1")
+  users            users              @relation(fields: [trigger_user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "test_runs_ibfk_2")
+
+  @@index([suite_id], map: "suite_id")
+  @@index([trigger_user_id], map: "trigger_user_id")
+}
+
+model test_suites {
+  id             Int              @id @default(autoincrement())
+  name           String           @db.VarChar(255)
+  owner_id       Int
+  metadata       Json?
+  created_at     DateTime?        @default(now()) @db.Timestamp(0)
+  suite_case_map suite_case_map[]
+  test_runs      test_runs[]
+  users          users            @relation(fields: [owner_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "test_suites_ibfk_1")
+
+  @@index([owner_id], map: "owner_id")
+}
+
+model user_roles {
+  user_id Int
+  role_id Int
+  users   users @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_roles_ibfk_1")
+  roles   roles @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_roles_ibfk_2")
+
+  @@id([user_id, role_id])
+  @@index([role_id], map: "role_id")
+}
+
+model users {
+  id            Int           @id @default(autoincrement())
+  email         String        @unique(map: "email") @db.VarChar(255)
+  password_hash String        @db.VarChar(255)
+  created_at    DateTime?     @default(now()) @db.Timestamp(0)
+  api_tokens    api_tokens[]
+  audit_logs    audit_logs[]
+  test_runs     test_runs[]
+  test_suites   test_suites[]
+  user_roles    user_roles[]
+}
+
+model step_screenshots {
+  id               Int                           @id @default(autoincrement())
+  run_id           String                        @db.VarChar(255)
+  test_case_id     Int?
+  step_index       String                        @db.VarChar(50)
+  step_description String?                       @db.Text
+  status           step_screenshots_status
+  file_path        String                        @db.VarChar(1024)
+  file_name        String                        @db.VarChar(255)
+  file_size        BigInt?
+  mime_type        String?                       @default("image/png") @db.VarChar(100)
+  created_at       DateTime?                     @default(now()) @db.Timestamp(0)
+  file_exists      Boolean                       @default(true)
+  test_cases       test_cases?                   @relation(fields: [test_case_id], references: [id], onDelete: SetNull)
+
+  @@index([run_id], map: "idx_run_id")
+  @@index([test_case_id], map: "idx_test_case_id") 
+  @@index([created_at], map: "idx_created_at")
+}
+
+enum job_logs_status {
+  STARTED
+  SUCCESS
+  FAILED
+}
+
+enum test_run_results_status {
+  PASSED
+  FAILED
+  SKIPPED
+}
+
+enum test_runs_status {
+  PENDING
+  RUNNING
+  PASSED
+  FAILED
+  CANCELLED
+}
+
+enum step_screenshots_status {
+  success
+  failed
+  error
+  completed
+}

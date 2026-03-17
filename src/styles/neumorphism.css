@@ -1,0 +1,272 @@
+/* 🎨 新拟态风格样式表 */
+
+:root {
+  /* 新拟态配色 */
+  --bg-color: #e0e5ec;
+  --text-color: #333;
+  --light-shadow: #ffffff;
+  --dark-shadow: #a3b1c6;
+  --accent-color: #6d7fcc;
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --error-color: #f44336;
+  
+  /* 圆角和间距 */
+  --border-radius: 20px;
+  --padding: 20px;
+  --shadow-soft: 9px 9px 16px var(--dark-shadow), -9px -9px 16px var(--light-shadow);
+  --shadow-inset: inset 6px 6px 10px var(--dark-shadow), inset -6px -6px 10px var(--light-shadow);
+}
+
+/* 🌙 深色模式 */
+[data-theme="dark"] {
+  --bg-color: #1a1a2e;
+  --text-color: #eee;
+  --light-shadow: #2a2a3e;
+  --dark-shadow: #0a0a1e;
+}
+
+/* 🏗️ 基础布局 */
+.neumorphism-workbench {
+  background: var(--bg-color);
+  min-height: 100vh;
+  padding: var(--padding);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* 📊 卡片组件 */
+.neumorphism-card {
+  background: var(--bg-color);
+  border-radius: var(--border-radius);
+  padding: var(--padding);
+  box-shadow: var(--shadow-soft);
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.neumorphism-card:hover {
+  box-shadow: 12px 12px 20px var(--dark-shadow), -12px -12px 20px var(--light-shadow);
+}
+
+.neumorphism-card:active {
+  box-shadow: var(--shadow-inset);
+}
+
+/* 🔘 按钮样式 */
+.neumorphism-button {
+  background: var(--bg-color);
+  border: none;
+  border-radius: 50px;
+  padding: 12px 24px;
+  box-shadow: var(--shadow-soft);
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.neumorphism-button:hover {
+  box-shadow: 6px 6px 12px var(--dark-shadow), -6px -6px 12px var(--light-shadow);
+}
+
+.neumorphism-button:active {
+  box-shadow: var(--shadow-inset);
+}
+
+.neumorphism-button.primary {
+  background: var(--accent-color);
+  color: white;
+}
+
+.neumorphism-button.success {
+  background: var(--success-color);
+  color: white;
+}
+
+.neumorphism-button.warning {
+  background: var(--warning-color);
+  color: white;
+}
+
+.neumorphism-button.error {
+  background: var(--error-color);
+  color: white;
+}
+
+/* 📊 统计卡片 */
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--accent-color);
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+/* 🎯 进度条 */
+.neumorphism-progress {
+  background: var(--bg-color);
+  border-radius: 50px;
+  height: 12px;
+  box-shadow: var(--shadow-inset);
+  overflow: hidden;
+}
+
+.neumorphism-progress-bar {
+  height: 100%;
+  border-radius: 50px;
+  background: linear-gradient(135deg, var(--accent-color), #8e9efc);
+  transition: width 0.3s ease;
+}
+
+/* 🔍 搜索框 */
+.neumorphism-search {
+  background: var(--bg-color);
+  border: none;
+  border-radius: 25px;
+  padding: 12px 20px;
+  box-shadow: var(--shadow-inset);
+  color: var(--text-color);
+  font-size: 14px;
+  width: 100%;
+  max-width: 300px;
+}
+
+.neumorphism-search:focus {
+  outline: none;
+  box-shadow: var(--shadow-inset), 0 0 0 2px var(--accent-color);
+}
+
+/* 📋 列表项 */
+.neumorphism-list-item {
+  background: var(--bg-color);
+  border-radius: var(--border-radius);
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.neumorphism-list-item:hover {
+  box-shadow: 6px 6px 12px var(--dark-shadow), -6px -6px 12px var(--light-shadow);
+}
+
+.neumorphism-list-item.active {
+  box-shadow: var(--shadow-inset);
+  background: rgba(109, 127, 204, 0.1);
+}
+
+/* 🏷️ 标签 */
+.neumorphism-tag {
+  background: var(--bg-color);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  box-shadow: 3px 3px 6px var(--dark-shadow), -3px -3px 6px var(--light-shadow);
+  margin: 2px;
+}
+
+/* 🎯 导航栏 */
+.neumorphism-nav {
+  background: var(--bg-color);
+  border-radius: var(--border-radius);
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.neumorphism-nav-item {
+  background: var(--bg-color);
+  border-radius: 15px;
+  padding: 8px 16px;
+  box-shadow: 3px 3px 6px var(--dark-shadow), -3px -3px 6px var(--light-shadow);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.neumorphism-nav-item:hover {
+  box-shadow: 4px 4px 8px var(--dark-shadow), -4px -4px 8px var(--light-shadow);
+}
+
+.neumorphism-nav-item.active {
+  box-shadow: var(--shadow-inset);
+  background: var(--accent-color);
+  color: white;
+}
+
+/* 🎨 颜色状态 */
+.status-success {
+  color: var(--success-color);
+}
+
+.status-warning {
+  color: var(--warning-color);
+}
+
+.status-error {
+  color: var(--error-color);
+}
+
+/* 📱 响应式设计 */
+@media (max-width: 768px) {
+  .neumorphism-workbench {
+    padding: 10px;
+  }
+  
+  .neumorphism-card {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+  }
+}
+
+/* ✨ 动画效果 */
+@keyframes neumorphism-pulse {
+  0% {
+    box-shadow: var(--shadow-soft);
+  }
+  50% {
+    box-shadow: 12px 12px 20px var(--dark-shadow), -12px -12px 20px var(--light-shadow);
+  }
+  100% {
+    box-shadow: var(--shadow-soft);
+  }
+}
+
+.neumorphism-pulse {
+  animation: neumorphism-pulse 2s ease-in-out infinite;
+}
+
+/* 🎯 特殊效果 */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 🌈 渐变背景 */
+.gradient-bg {
+  background: linear-gradient(135deg, 
+    rgba(109, 127, 204, 0.1) 0%, 
+    rgba(142, 158, 252, 0.05) 100%);
+}

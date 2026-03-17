@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>功能测试用例列表 - 原型导航</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 
+                         'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        
+        .versions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .version-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        
+        .version-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        
+        .version-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        
+        .version-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 12px;
+        }
+        
+        .version-desc {
+            font-size: 15px;
+            color: #718096;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .version-features {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+        
+        .version-features li {
+            font-size: 14px;
+            color: #4a5568;
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+        }
+        
+        .version-features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .version-label {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #edf2f7;
+            color: #4a5568;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .version-label.recommended {
+            background: #fef5e7;
+            color: #d97706;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .comparison-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .comparison-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .comparison-table th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .comparison-table td {
+            color: #4a5568;
+        }
+        
+        .check-icon {
+            color: #48bb78;
+            font-weight: bold;
+        }
+        
+        .cross-icon {
+            color: #cbd5e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 功能测试用例列表原型</h1>
+            <p>选择一个版本查看交互原型</p>
+        </div>
+        
+        <div class="versions-grid">
+            <!-- 版本1：经典表格视图 -->
+            <a href="version1-table.html" class="version-card">
+                <div class="version-icon">📊</div>
+                <div class="version-title">版本1：经典表格视图</div>
+                <div class="version-desc">传统的表格展示方式，信息密度高，适合快速浏览和对比数据</div>
+                <ul class="version-features">
+                    <li>平铺式数据展示</li>
+                    <li>支持多列筛选和排序</li>
+                    <li>批量操作支持</li>
+                    <li>高信息密度</li>
+                </ul>
+                <span class="version-label">当前实现</span>
+            </a>
+            
+            <!-- 版本2：树形层级视图 -->
+            <a href="version2-tree.html" class="version-card">
+                <div class="version-icon">🌳</div>
+                <div class="version-title">版本2：树形层级视图</div>
+                <div class="version-desc">三层结构：测试场景 → 测试用例 → 测试点，层次清晰，便于管理</div>
+                <ul class="version-features">
+                    <li>场景分组展示</li>
+                    <li>可折叠展开的树形结构</li>
+                    <li>层级关系清晰</li>
+                    <li>支持批量操作</li>
+                </ul>
+                <span class="version-label recommended">推荐</span>
+            </a>
+            
+            <!-- 版本3：卡片式视图 -->
+            <a href="version3-card.html" class="version-card">
+                <div class="version-icon">🎴</div>
+                <div class="version-title">版本3：卡片式视图</div>
+                <div class="version-desc">卡片布局，视觉效果更好，适合需要突出重点信息的场景</div>
+                <ul class="version-features">
+                    <li>卡片网格布局</li>
+                    <li>视觉层次丰富</li>
+                    <li>快速浏览和定位</li>
+                    <li>支持拖拽排序</li>
+                </ul>
+                <span class="version-label">美观</span>
+            </a>
+            
+            <!-- 版本4：看板视图 -->
+            <a href="version4-kanban.html" class="version-card">
+                <div class="version-icon">📋</div>
+                <div class="version-title">版本4：看板视图</div>
+                <div class="version-desc">按状态分组的看板布局，可视化测试用例的生命周期状态</div>
+                <ul class="version-features">
+                    <li>按状态分列展示</li>
+                    <li>可视化工作流</li>
+                    <li>支持拖拽移动</li>
+                    <li>直观的状态管理</li>
+                </ul>
+                <span class="version-label">敏捷</span>
+            </a>
+        </div>
+        
+        <div class="comparison-section">
+            <div class="comparison-title">📐 版本对比</div>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>特性</th>
+                        <th>版本1 表格</th>
+                        <th>版本2 树形</th>
+                        <th>版本3 卡片</th>
+                        <th>版本4 看板</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>信息密度</td>
+                        <td class="check-icon">★★★★★</td>
+                        <td class="check-icon">★★★★☆</td>
+                        <td class="check-icon">★★★☆☆</td>
+                        <td class="check-icon">★★☆☆☆</td>
+                    </tr>
+                    <tr>
+                        <td>层级关系展示</td>
+                        <td class="cross-icon">★☆☆☆☆</td>
+                        <td class="check-icon">★★★★★</td>
+                        <td class="check-icon">★★★☆☆</td>
+                        <td class="check-icon">★★☆☆☆</td>
+                    </tr>
+                    <tr>
+                        <td>视觉美观度</td>
+                        <td class="check-icon">★★★☆☆</td>
+                        <td class="check-icon">★★★★☆</td>
+                        <td class="check-icon">★★★★★</td>
+                        <td class="check-icon">★★★★☆</td>
+                    </tr>
+                    <tr>
+                        <td>状态管理</td>
+                        <td class="check-icon">★★☆☆☆</td>
+                        <td class="check-icon">★★★☆☆</td>
+                        <td class="check-icon">★★★☆☆</td>
+                        <td class="check-icon">★★★★★</td>
+                    </tr>
+                    <tr>
+                        <td>批量操作</td>
+                        <td class="check-icon">★★★★★</td>
+                        <td class="check-icon">★★★★☆</td>
+                        <td class="check-icon">★★★☆☆</td>
+                        <td class="check-icon">★★☆☆☆</td>
+                    </tr>
+                    <tr>
+                        <td>适用场景</td>
+                        <td>数据查询、导出</td>
+                        <td>层级管理、分类查看</td>
+                        <td>浏览预览、快速定位</td>
+                        <td>敏捷开发、状态跟踪</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="footer">
+            <p>💡 提示：点击任意版本卡片查看交互原型 | 所有原型均支持在线预览和交互</p>
+        </div>
+    </div>
+</body>
+</html>
+
