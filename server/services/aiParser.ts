@@ -267,7 +267,7 @@ export class AITestParser {
    */
   private generateOperationCacheKey(stepDescription: string, pageElements: string): string {
     const normalizedDesc = stepDescription.toLowerCase().trim();
-    // 生成页面元素指纹（只包含核心元素，避免因动态内容变化导致缓存失效）
+    // 生成页面元素指纹（只包含元素，避免因动态内容变化导致缓存失效）
     const elementsHash = crypto
       .createHash('md5')
       .update(pageElements.substring(0, 500)) // 只取前500字符
@@ -954,7 +954,7 @@ export class AITestParser {
       });
     }
     
-    // 提取核心名词短语
+    // 提取名词短语
     targetText = targetText.trim();
     if (targetText.length > 1 && targetText.length < 20) {
       keywords.push(targetText);
@@ -1734,7 +1734,7 @@ export class AITestParser {
    * 🔥 获取操作模式的系统提示词（增强版）
    */
   private getOperationSystemPrompt(): string {
-    return `你是一个顶级的测试自动化AI专家。你的核心职责是：
+    return `你是一个顶级的测试自动化AI专家。你的职责是：
 
 # 身份与能力
 - 将自然语言操作指令转换为精确的JSON格式MCP命令
@@ -1754,7 +1754,7 @@ export class AITestParser {
 - 如果指令看起来像断言或验证，请返回错误信息
 - 只有具体的操作指令才应该被转换为MCP命令
 
-# ⭐ 核心匹配规则（最高优先级）
+# ⭐ 匹配规则（最高优先级）
 
 ## 1. 文本精确匹配原则
 - **当操作指令中包含明确的元素名称时，必须找到文本完全匹配或高度相似的元素**
@@ -1792,7 +1792,7 @@ export class AITestParser {
 - 如果文本不匹配，即使ref编号接近也不能选择
 - **对于复选框操作，优先选择checkbox类型的元素，即使其没有文本**
 
-# 核心参数规则
+# 参数规则
 - element参数：必须是简洁的中文描述（如"用户名输入框"、"提交按钮"）
 - ref参数：必须使用页面元素列表中文本匹配的元素的ref值
 - 两个参数都是必需的，缺一不可
@@ -1840,7 +1840,7 @@ export class AITestParser {
   </REMAINING_STEPS>
 
 # 支持的MCP操作命令
-## 核心交互
+## 交互
 - 点击: {"name": "browser_click", "args": {"element": "元素描述", "ref": "element_ref"}}
 - 双击: {"name": "browser_double_click", "args": {"element": "元素描述", "ref": "element_ref"}}
 - 悬停: {"name": "browser_hover", "args": {"element": "元素描述", "ref": "element_ref"}}
@@ -1942,7 +1942,7 @@ ${keywordsHint}
   - [ref=e22] generic [可点击] [包含checkbox] "我已阅读并同意《数据库安全审计系统许可协议》" ✅ 文本匹配
 - 正确选择：e22
 
-## ⭐ 核心匹配规则（必须遵守）
+## ⭐ 匹配规则（必须遵守）
 
 ### 1. 文本精确匹配优先
 - **当操作指令中包含明确的元素名称时，必须找到文本完全匹配或高度相似的元素**
@@ -2067,7 +2067,7 @@ ${keywordsHint}
    * 🔥 获取相关性检查的系统提示词
    */
   private getRelevanceCheckSystemPrompt(): string {
-    return `你是一个专业的测试用例相关性分析AI专家。你的核心职责是：
+    return `你是一个专业的测试用例相关性分析AI专家。你的职责是：
 
 # 身份与能力
 - 精确分析测试用例与变更描述之间的相关性
@@ -2094,7 +2094,7 @@ ${keywordsHint}
 - recall_reason字段：详细说明相关性分析的依据和理由
 
 # 分析思路
-1. 解析变更描述的核心要素（功能、操作、UI元素等）
+1. 解析变更描述的要素（功能、操作、UI元素等）
 2. 分析测试用例覆盖的功能和操作流程
 3. 识别两者之间的直接和间接关联
 4. 综合评估相关性程度并给出评分
@@ -2105,7 +2105,7 @@ ${keywordsHint}
    * 🔥 获取更新生成的系统提示词
    */
   private getUpdateGenerationSystemPrompt(): string {
-    return `你是一个专业的测试用例自动化更新AI专家。你的核心职责是：
+    return `你是一个专业的测试用例自动化更新AI专家。你的职责是：
 
 # 身份与能力
 - 基于变更描述精确生成测试用例的JSON Patch修改方案
@@ -2164,7 +2164,7 @@ ${keywordsHint}
    * 🔥 获取断言模式的系统提示词
    */
   private getAssertionSystemPrompt(): string {
-    return `你是一个专业的测试断言验证AI专家。你的核心职责是：
+    return `你是一个专业的测试断言验证AI专家。你的职责是：
 
 # 身份与能力
 - 将自然语言断言描述转换为精确的JSON格式MCP验证命令
@@ -2176,7 +2176,7 @@ ${keywordsHint}
 - 你处于【断言验证模式】，只验证功能性内容，不执行操作
 - 断言目标：验证页面当前状态是否符合预期
 - 优先使用快照分析，必要时结合等待和截图验证
-- **核心原则：忽略非功能性错误，专注核心功能验证**
+- **原则：忽略非功能性错误，专注功能验证**
 
 # ⭐ 错误处理策略（关键）
 ## 应该忽略的错误（不影响断言结果）：
@@ -2184,7 +2184,7 @@ ${keywordsHint}
    - TypeError: Failed to execute 'getComputedStyle' on 'Window'
    - TypeError: Cannot read properties of undefined
    - ReferenceError、SyntaxError等前端代码错误
-   - 任何不影响页面核心功能展示的JS错误
+   - 任何不影响页面功能展示的JS错误
 2. **样式和渲染错误**：
    - CSS加载失败
    - 图片加载失败（除非断言明确要求验证图片）
@@ -2197,7 +2197,7 @@ ${keywordsHint}
 ## 应该关注的错误（影响断言结果）：
 1. **业务逻辑错误**：
    - 数据显示错误（金额、数量、状态等与预期不符）
-   - 核心功能失效（搜索无结果、提交失败、数据未加载）
+   - 功能失效（搜索无结果、提交失败、数据未加载）
 2. **断言明确要求验证的内容**：
    - 断言描述中明确指出要检查的文本、元素、状态
 
@@ -2208,15 +2208,15 @@ ${keywordsHint}
 4. **视觉证据保存** → 使用 browser_take_screenshot 保存验证截图
 
 # ⭐ 判断标准（重要）
-- ✅ **通过**：断言要求的核心功能/内容正确显示，即使有Console错误
-- ❌ **失败**：断言要求的核心功能/内容缺失或错误
-- ⚠️ **警告**：有次要错误但核心功能正常（应判定为通过）
+- ✅ **通过**：断言要求的功能/内容正确显示，即使有Console错误
+- ❌ **失败**：断言要求的功能/内容缺失或错误
+- ⚠️ **警告**：有次要错误但功能正常（应判定为通过）
 
 ## 判断流程
-1. 提取断言的核心验证目标（要验证什么？）
-2. 分析页面快照中的核心内容（数据是否存在？）
+1. 提取断言的验证目标（要验证什么？）
+2. 分析页面快照中的内容（数据是否存在？）
 3. 过滤Console错误和非功能性问题（标记为"可忽略"）
-4. 判断核心功能是否满足断言要求
+4. 判断功能是否满足断言要求
 5. 给出明确结论：通过/失败
 
 # ⭐ 输出格式要求（关键）
@@ -2436,10 +2436,10 @@ ${keywordsHint}
 
     return `# 当前断言验证任务
 
-## ⭐ 验证目标（核心）
+## ⭐ 验证目标（）
 用户断言: "${assertionDescription}"
 
-**请明确断言的核心验证目标**:
+**请明确断言的验证目标**:
 - 📊 数据验证: 验证特定数据、数量、金额、状态是否正确
 - 📝 文本验证: 验证特定文本内容是否存在/消失
 - 🎯 元素验证: 验证特定元素是否可见/隐藏
@@ -2449,7 +2449,7 @@ ${keywordsHint}
 ${elementsContext}
 
 ## ⚠️ 错误过滤原则（关键）
-**注意：快照已预过滤Console错误，请专注于核心功能验证**
+**注意：快照已预过滤Console错误，请专注于功能验证**
 
 ✅ **应该验证的**（功能性问题）：
 - 断言要求的数据是否正确显示
@@ -2557,15 +2557,15 @@ ${elementsContext}
 
 3. **⭐ 一致性要求（重要）**：
    - 对于相同的断言描述和相似的页面状态，应该选择相同的验证元素
-   - 优先选择最明显、最具代表性的元素（如页面标题、核心内容元素）
+   - 优先选择最明显、最具代表性的元素（如页面标题、内容元素）
    - 避免每次选择不同的元素导致验证结果不一致
    - 如果断言描述提到"页面跳转"或"页面状态"，优先验证页面标题或 URL 相关元素
 
 ## 示例对比
 
-### ✅ 好的断言（专注核心）
+### ✅ 好的断言（专注）
 **断言**: "验证搜索结果包含'测试用例001'"
-**分析**: 核心目标是验证文本存在
+**分析**: 目标是验证文本存在
 **命令**: {"name": "browser_snapshot", "args": {}}
 **判断**: 文本存在即PASS，忽略Console错误
 

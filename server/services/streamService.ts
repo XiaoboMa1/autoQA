@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { Page } from 'playwright';
+import { Page, CDPSession } from 'playwright';
 import { once } from 'node:events';
 import sharp from 'sharp';
 import { PlaywrightMcpClient } from './mcpClient.js';
@@ -25,6 +25,7 @@ export class StreamService {
   private frameBuffer: Map<string, Buffer>;
   private timers: Map<string, NodeJS.Timeout>;        // 🔥 修正：定时器管理
   private mcpClients: Map<string, PlaywrightMcpClient>; // 🔥 MCP客户端缓存
+  private cdpSessions: Map<string, CDPSession>;          // CDP event-driven sessions
   private activeScreenshotTasks: Set<string>;
   
   // 🔥 方案C性能统计
@@ -42,10 +43,89 @@ export class StreamService {
     this.frameBuffer = new Map();
     this.timers = new Map();
     this.mcpClients = new Map();
+    this.cdpSessions = new Map();
     this.activeScreenshotTasks = new Set();
   }
 
-  // 🔥 修正：基于fps定时取帧
+  /**
+   * CDP event-driven streaming — used for Playwright and Midscene engines
+   * where we hold the Page object directly (not via MCP subprocess).
+   *
+   * Instead of polling with setInterval + page.screenshot(), this attaches to
+   * the Chrome DevTools Protocol Page.screencastFrame event. The browser pushes
+   * JPEG frames as soon as they are rendered, eliminating the polling interval
+   * and MCP stdio round-trip overhead.
+   *
+   * Typical latency: ~40-100ms (render + CDP event dispatch + base64 decode)
+   * vs polling baseline: ~500ms interval + 100-200ms screenshot RPC = 600-700ms
+   *
+   * Falls back to polling (startStream) if CDP session creation fails.
+   */
+  async startStreamWithCDP(runId: string, page: Page): Promise<void> {
+    if (this.cdpSessions.has(runId) || this.timers.has(runId)) {
+      return;
+    }
+
+    const startTime = Date.now();
+    try {
+      const cdpSession = await page.context().newCDPSession(page);
+      this.cdpSessions.set(runId, cdpSession);
+
+      let frameCount = 0;
+
+      cdpSession.on('Page.screencastFrame', async (payload: { data: string; sessionId: number; metadata: { timestamp: number } }) => {
+        const { data, sessionId } = payload;
+        const frameStart = Date.now();
+
+        // Acknowledge frame immediately to keep the stream flowing
+        try {
+          await cdpSession.send('Page.screencastFrameAck', { sessionId });
+        } catch (ackError) {
+          console.error(`[StreamService] CDP ack failed: ${runId.substring(0, 8)}`, ackError);
+        }
+
+        // Decode base64 JPEG from CDP and push to clients
+        const frameBuffer = Buffer.from(data, 'base64');
+        frameCount++;
+        this.stats.totalAttempts++;
+
+        try {
+          await this.pushFrameAndUpdateCache(runId, frameBuffer);
+          this.stats.successfulScreenshots++;
+          const duration = Date.now() - frameStart;
+          this.updateAverageProcessingTime(duration);
+
+          if (frameCount % 20 === 0) {
+            console.log(`[StreamService] CDP stream ${runId.substring(0, 8)}: ${frameCount} frames, avg ${this.stats.averageProcessingTime.toFixed(0)}ms, success ${((this.stats.successfulScreenshots / this.stats.totalAttempts) * 100).toFixed(1)}%`);
+          }
+        } catch (pushError) {
+          this.stats.fallbackFrames++;
+          console.warn(`[StreamService] CDP frame push failed: ${runId.substring(0, 8)}`, pushError);
+        }
+      });
+
+      // Start the screencast — browser will push JPEG frames at the configured rate
+      await cdpSession.send('Page.startScreencast', {
+        format: 'jpeg',
+        quality: this.config.jpegQuality,
+        maxWidth: this.config.width,
+        maxHeight: this.config.height,
+        everyNthFrame: 1,
+      });
+
+      const setupDuration = Date.now() - startTime;
+      console.log(`📺 [StreamService] CDP stream started: ${runId}, setup: ${setupDuration}ms, quality: ${this.config.jpegQuality}, resolution: ${this.config.width}x${this.config.height}`);
+
+    } catch (error) {
+      // CDP session creation can fail in certain browser states (e.g. page crash).
+      // Fall back to polling-based streaming.
+      console.warn(`[StreamService] CDP stream init failed for ${runId}, falling back to polling:`, error);
+      this.cdpSessions.delete(runId);
+      this.startStream(runId, page);
+    }
+  }
+
+  // Polling-based streaming — used as fallback and for MCP engine path
   startStream(runId: string, page: Page): void {
     if (this.timers.has(runId)) return;
     
@@ -403,17 +483,31 @@ export class StreamService {
     await new Promise(resolve => setTimeout(resolve, durationMs));
   }
 
-  // 🔥 修正：停止实时流，清理所有资源
+  // 🔥 修正：停止实时流，清理所有资源（polling timers + CDP sessions + MCP clients）
   stopStream(runId: string): void {
     console.log(`🛑 [StreamService] 停止实时流: ${runId}`);
-    
+
     const timer = this.timers.get(runId);
     if (timer) {
       clearInterval(timer);
       this.timers.delete(runId);
       this.activeScreenshotTasks.delete(runId);
     }
-    
+
+    // Clean up CDP session if active
+    const cdpSession = this.cdpSessions.get(runId);
+    if (cdpSession) {
+      (async () => {
+        try {
+          await cdpSession.send('Page.stopScreencast');
+          await cdpSession.detach();
+        } catch (e) {
+          // Session may already be closed if the page navigated away
+        }
+      })();
+      this.cdpSessions.delete(runId);
+    }
+
     // 清理MCP客户端缓存
     this.mcpClients.delete(runId);
     

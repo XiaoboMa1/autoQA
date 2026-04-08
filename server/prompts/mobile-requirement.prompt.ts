@@ -19,7 +19,7 @@ export function getMobileRequirementPrompt(options: MobilePromptOptions): string
 
 ## 🔥 移动端多状态画面识别(极其重要!)
 
-**核心问题**: 移动端Axure原型中,经常会在**同一个位置**出现多个画面,这些画面通过 \`display:none\` 切换,代表不同的状态(空状态、加载中、有数据、编辑状态、错误状态等)。
+**问题**: 移动端Axure原型中,经常会在**同一个位置**出现多个画面,这些画面通过 \`display:none\` 切换,代表不同的状态(空状态、加载中、有数据、编辑状态、错误状态等)。
 
 **识别策略**:
 

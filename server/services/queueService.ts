@@ -1,11 +1,14 @@
 import PQueue from 'p-queue';
 import { EventEmitter } from 'events';
+import { ConcurrencyController, ControllerConfig } from './concurrencyController.js';
 
 interface QueueConfig {
-  maxConcurrency: number;      // 全局最大并发：6
+  maxConcurrency: number;      // 全局最大并发上限：6
   perUserLimit: number;        // 每用户并发：2
   taskTimeout: number;         // 任务超时：10分钟
   retryAttempts: number;       // 重试次数：1
+  // Adaptive concurrency (optional — if omitted, falls back to static maxConcurrency)
+  adaptive?: Partial<ControllerConfig>;
 }
 
 interface QueueTask {
@@ -21,52 +24,103 @@ interface QueueTask {
 export class QueueService extends EventEmitter {
   private globalQueue: PQueue;
   private userQueues: Map<string, PQueue>;
-  private planQueues: Map<string, PQueue>; // 🔥 新增：测试计划队列，确保同一计划的用例串行执行
+  private planQueues: Map<string, PQueue>;
   private activeTasks: Map<string, QueueTask>;
   private waitingTasks: Map<string, QueueTask>;
-  private cancelSet: Set<string>;  // 🔥 修正：添加取消标记集合
+  private cancelSet: Set<string>;
   private config: QueueConfig;
-  
+
+  // Adaptive concurrency controller
+  private concurrencyController: ConcurrencyController | null = null;
+  private adaptiveTimer: ReturnType<typeof setInterval> | null = null;
+
   constructor(config: QueueConfig) {
     super();
     this.config = config;
-    this.globalQueue = new PQueue({ 
-      concurrency: config.maxConcurrency,
+
+    // Start with minConcurrency if adaptive mode is enabled, otherwise use static max
+    const initialConcurrency = config.adaptive
+      ? (config.adaptive.minConcurrency ?? 1)
+      : config.maxConcurrency;
+
+    this.globalQueue = new PQueue({
+      concurrency: initialConcurrency,
       timeout: config.taskTimeout,
-      throwOnTimeout: true  // 🔥 修正：启用超时抛出
+      throwOnTimeout: true
     });
     this.userQueues = new Map();
-    this.planQueues = new Map(); // 🔥 新增：初始化测试计划队列
+    this.planQueues = new Map();
     this.activeTasks = new Map();
     this.waitingTasks = new Map();
     this.cancelSet = new Set();
+
+    // Initialize adaptive concurrency if configured
+    if (config.adaptive) {
+      this.initAdaptiveConcurrency(config.adaptive);
+    }
   }
 
-  // 🔥 修正：添加执行函数参数，支持重试机制
+  /**
+   * Initialise the adaptive concurrency controller.
+   * The controller periodically reads OS-level metrics (free memory, CPU load,
+   * event loop lag) and adjusts globalQueue.concurrency up or down.
+   *
+   * On Windows, os.loadavg() returns [0,0,0], so the CPU branch is a no-op;
+   * event loop lag acts as the CPU-pressure proxy instead.
+   */
+  private initAdaptiveConcurrency(opts: Partial<ControllerConfig>): void {
+    const controllerOpts: Partial<ControllerConfig> = {
+      maxConcurrency: this.config.maxConcurrency,
+      ...opts,
+    };
+    this.concurrencyController = new ConcurrencyController(controllerOpts);
+
+    const checkInterval = controllerOpts.checkIntervalMs ?? 3000;
+
+    this.adaptiveTimer = setInterval(() => {
+      this.adjustConcurrency();
+    }, checkInterval);
+
+    // Also adjust on queue activity events for faster response
+    this.globalQueue.on('active', () => this.adjustConcurrency());
+    this.globalQueue.on('next', () => this.adjustConcurrency());
+
+    console.log(`[QueueService] Adaptive concurrency enabled (check every ${checkInterval}ms, range ${controllerOpts.minConcurrency ?? 1}-${controllerOpts.maxConcurrency ?? this.config.maxConcurrency})`);
+  }
+
+  /** Read system metrics and update global queue concurrency if needed. */
+  private adjustConcurrency(): void {
+    if (!this.concurrencyController) return;
+
+    const next = this.concurrencyController.getNextConcurrency();
+    if (this.globalQueue.concurrency !== next) {
+      const prev = this.globalQueue.concurrency;
+      this.globalQueue.concurrency = next;
+      this.emit('concurrency_adjusted', { previous: prev, current: next });
+    }
+  }
+
   async enqueue(task: QueueTask, executor: (task: QueueTask) => Promise<void>): Promise<void> {
     const userQueue = this.getUserQueue(task.userId);
-    
-    // 🔥 新增：检查是否有 planExecutionId，如果有则使用测试计划队列（串行执行）
+
     const planExecutionId = task.payload?.options?.planExecutionId;
     const planQueue = planExecutionId ? this.getPlanQueue(planExecutionId) : null;
-    
+
     this.waitingTasks.set(task.id, task);
     this.emit('task_queued', task);
-    
+
     return this.globalQueue.add(async () => {
-      // 🔥 如果有测试计划队列，使用测试计划队列（串行执行），否则使用用户队列
       const targetQueue = planQueue || userQueue;
-      
+
       return targetQueue.add(async () => {
-        // 检查是否已被取消
         if (this.cancelSet.has(task.id)) {
           throw new Error('Task cancelled');
         }
-        
+
         this.waitingTasks.delete(task.id);
         this.activeTasks.set(task.id, task);
         this.emit('task_started', task);
-        
+
         let attempts = 0;
         while (attempts < this.config.retryAttempts + 1) {
           try {
@@ -75,7 +129,7 @@ export class QueueService extends EventEmitter {
             this.cancelSet.delete(task.id);
             this.emit('task_completed', task);
             return;
-          } catch (error) {
+          } catch (error: any) {
             attempts++;
             if (attempts > this.config.retryAttempts || error.message === 'Task cancelled') {
               this.activeTasks.delete(task.id);
@@ -90,7 +144,6 @@ export class QueueService extends EventEmitter {
     }, { priority: this.getPriority(task.priority) });
   }
 
-  // 🔥 修正：实现优先级映射
   private getPriority(priority: 'high' | 'medium' | 'low'): number {
     switch (priority) {
       case 'high': return 1;
@@ -99,27 +152,23 @@ export class QueueService extends EventEmitter {
     }
   }
 
-  // 取消任务
   async cancelTask(taskId: string): Promise<boolean> {
     const task = this.waitingTasks.get(taskId) || this.activeTasks.get(taskId);
     if (!task) return false;
 
-    // 标记为取消
     this.cancelSet.add(taskId);
     this.waitingTasks.delete(taskId);
-    
-    // 通知执行器中断
+
     this.emit('task_cancelled', task);
     return true;
   }
 
-  // 检查任务是否已被取消
   isCancelled(taskId: string): boolean {
     return this.cancelSet.has(taskId);
   }
 
-  // 获取队列状态
   getQueueStatus() {
+    const metrics = this.concurrencyController?.getMetrics();
     return {
       global: {
         size: this.globalQueue.size,
@@ -128,7 +177,14 @@ export class QueueService extends EventEmitter {
       },
       waiting: Array.from(this.waitingTasks.values()),
       active: Array.from(this.activeTasks.values()),
-      estimatedWaitTime: this.calculateEstimatedWaitTime()
+      estimatedWaitTime: this.calculateEstimatedWaitTime(),
+      // Adaptive concurrency info
+      adaptive: this.concurrencyController ? {
+        enabled: true,
+        currentConcurrency: this.concurrencyController.getCurrent(),
+        systemMetrics: metrics,
+        recentAdjustments: this.concurrencyController.getAdjustmentLog().slice(-5),
+      } : { enabled: false },
     };
   }
 
@@ -139,23 +195,28 @@ export class QueueService extends EventEmitter {
     return this.userQueues.get(userId)!;
   }
 
-  // 🔥 新增：获取测试计划队列（串行执行，concurrency=1）
   private getPlanQueue(planExecutionId: string): PQueue {
     if (!this.planQueues.has(planExecutionId)) {
-      // 🔥 测试计划队列使用串行执行（concurrency=1），确保同一计划的用例不会并发执行
       this.planQueues.set(planExecutionId, new PQueue({ concurrency: 1 }));
       console.log(`📋 [QueueService] 创建测试计划队列: ${planExecutionId.substring(0, 8)}... (串行执行)`);
     }
     return this.planQueues.get(planExecutionId)!;
   }
 
-  // 🔥 修正：使用历史数据计算等待时间
   private calculateEstimatedWaitTime(): number {
-    // 简化实现，实际可基于历史运行时间的中位数
-    const avgDuration = 120; // 假设平均2分钟
+    const avgDuration = 120;
     const position = this.globalQueue.size;
     const concurrency = this.globalQueue.concurrency;
     return Math.ceil(position / concurrency) * avgDuration;
+  }
+
+  /** Graceful shutdown: stop adaptive timer and destroy monitor. */
+  destroy(): void {
+    if (this.adaptiveTimer) {
+      clearInterval(this.adaptiveTimer);
+      this.adaptiveTimer = null;
+    }
+    this.concurrencyController?.destroy();
   }
 }
 

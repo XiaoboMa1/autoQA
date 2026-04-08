@@ -38,7 +38,7 @@ export interface SideEffect {
   severity: 'low' | 'medium' | 'high';
 }
 
-// 🔥 新增：简化的提案数据结构，只包含用户需要的核心信息
+// 🔥 新增：简化的提案数据结构，只包含用户需要的信息
 export interface SimplifiedProposal {
   id: number;
   case_id: number;

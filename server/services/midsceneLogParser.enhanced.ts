@@ -28,7 +28,7 @@ export function formatSummaryEnhanced(summary: any): string {
   lines.push('📊 Midscene AI 调用详细统计');
   lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   
-  // 核心指标（单行展示）
+  // 指标（单行展示）
   const avgTokens = summary.tokenStats.length > 0 
     ? Math.round(summary.totalTokens / summary.tokenStats.length) 
     : 0;

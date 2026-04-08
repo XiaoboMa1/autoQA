@@ -99,7 +99,7 @@ export class AIPreAnalysisService {
 2. 你不确定的关键信息（uncertainInfo）- 需要用户确认
 3. 完全缺失的关键信息（missingCritical）
 
-🎯 核心目标：
+🎯 目标：
 - 快速识别"不确定的关键点"，而不是生成完整需求文档
 - 提出精准的问题，避免问用户已经明确的内容
 - 优先级分级：high（必须确认）> medium（建议确认）> low（可选）

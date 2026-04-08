@@ -266,7 +266,7 @@ export class TestCaseKnowledgeBase {
   }
 
   /**
-   * 搜索相关知识（核心RAG方法）
+   * 搜索相关知识（RAG方法）
    */
   async searchKnowledge(params: {
     query: string;           // 查询文本（需求文档内容）

@@ -43,7 +43,7 @@ export const LiveView: React.FC<LiveViewProps> = React.memo(({ runId, testStatus
   const cleanupPendingRef = useRef(false);
 
   useEffect(() => {
-    // 🔥 核心修复1：在最开头立即设置连接标志，防止清理函数重置后才检查
+    // 🔥 修复1：在最开头立即设置连接标志，防止清理函数重置后才检查
     const now = Date.now();
     const timeSinceLastEffect = now - lastEffectTimeRef.current;
 
@@ -217,7 +217,7 @@ export const LiveView: React.FC<LiveViewProps> = React.memo(({ runId, testStatus
       // 🚀 优化：简化清理日志
       console.log('🧹 [LiveView] 清理:', runId.substring(0, 8));
 
-      // 🔥 核心修复：延迟重置连接状态，给防抖保护时间
+      // 🔥 修复：延迟重置连接状态，给防抖保护时间
       // 只有在真正切换 runId 或卸载组件时才重置
       setTimeout(() => {
         if (cleanupPendingRef.current) {

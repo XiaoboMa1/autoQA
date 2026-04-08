@@ -452,7 +452,7 @@ export class TestCaseExecutionService {
         });
       }
       
-      // 🔥 核心：使用将要存入数据库的时间来计算 durationMs
+      // 🔥 ：使用将要存入数据库的时间来计算 durationMs
       // 这样确保 duration_ms = finished_at - started_at 完全一致
       let durationMs: number | undefined;
       if (dbStartedAt && dbFinishedAt) {

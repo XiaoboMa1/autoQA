@@ -209,7 +209,7 @@ export function TestRuns({
       localStorage.setItem('tr-viewMode', internalViewMode);
     }
   }, [internalViewMode, externalViewMode]);
-  // 🔥 核心修复3：简化 selectedRun 同步逻辑，直接复用 testRuns 中的对象
+  // 🔥 修复3：简化 selectedRun 同步逻辑，直接复用 testRuns 中的对象
   useEffect(() => {
     if (!selectedRun) return;
 
@@ -225,7 +225,7 @@ export function TestRuns({
       latest.failedSteps !== selectedRun.failedSteps
     );
 
-    // 🔥 核心修复：只有在字段变化且对象引用也变化时才更新
+    // 🔥 修复：只有在字段变化且对象引用也变化时才更新
     if (hasSignificantChange && latest !== selectedRun) {
       // 🔥 输出调试日志
       console.log('🔄 [TestRuns] selectedRun 更新:', {
@@ -802,7 +802,7 @@ export function TestRuns({
     };
   }, [updateTestRunIncrementally]);
 
-  // 🔥 核心修复2：使用独立的日志缓冲区，避免频繁更新 testRuns 对象引用
+  // 🔥 修复2：使用独立的日志缓冲区，避免频繁更新 testRuns 对象引用
   const logsBufferRef = useRef<Map<string, any[]>>(new Map());
   
   // 🔥 新增：标记首次加载是否完成，防止 WebSocket 消息在加载前创建重复记录
@@ -810,11 +810,11 @@ export function TestRuns({
   // 🔥 新增：记录已通过 WebSocket 创建的 runId，防止防抖批处理时重复创建
   const createdRunIdsRef = useRef<Set<string>>(new Set());
 
-  // 🔥 核心修复：使用 useCallback 而不是 useRef，确保函数能访问最新的 ref
+  // 🔥 修复：使用 useCallback 而不是 useRef，确保函数能访问最新的 ref
   const handleBatchLogs = useCallback((message: any) => {
     const { runId, logs, data } = message;
 
-    // 🔥 核心修复：兼容两种消息格式（logs 可能在顶层或 data 里）
+    // 🔥 修复：兼容两种消息格式（logs 可能在顶层或 data 里）
     const actualLogs = logs || data?.logs;
 
     // 🔥 添加详细日志验证函数是否被调用
@@ -825,14 +825,14 @@ export function TestRuns({
       return;
     }
 
-    // 🔥 核心优化：日志存储到独立缓冲区，不触发 testRuns 更新
+    // 🔥 优化：日志存储到独立缓冲区，不触发 testRuns 更新
     if (!logsBufferRef.current.has(runId)) {
       logsBufferRef.current.set(runId, []);
     }
 
     const buffer = logsBufferRef.current.get(runId)!;
 
-    // 🔥 核心修复：使用 actualLogs 而不是 logs
+    // 🔥 修复：使用 actualLogs 而不是 logs
     const formattedLogs = actualLogs.map((log: any) => ({
       id: log.id || `log-${Date.now()}-${Math.random()}`,
       timestamp: log.timestamp ? new Date(log.timestamp) : new Date(),
@@ -889,7 +889,7 @@ export function TestRuns({
         console.log('📨 WebSocket消息:', message.type, messageCount);
       }
 
-      // 🔥 核心修复：处理批量日志 - 使用 useCallback
+      // 🔥 修复：处理批量日志 - 使用 useCallback
       if (message.type === 'logs_batch') {
         handleBatchLogs(message);  // 🔥 修复：调用 handleBatchLogs 而不是 .current
         return;
@@ -1243,7 +1243,7 @@ export function TestRuns({
     }
   }, []);
 
-  // 🔥 核心修复4：使用独立的 ref 存储 LiveView 关键属性
+  // 🔥 修复4：使用独立的 ref 存储 LiveView 关键属性
   const liveViewRunIdRef = useRef<string | null>(null);
   const liveViewStatusRef = useRef<'running' | 'completed' | 'failed' | 'queued' | 'cancelled' | null>(null);
   const [liveViewPropsVersion, setLiveViewPropsVersion] = useState(0);
@@ -1274,7 +1274,7 @@ export function TestRuns({
         statusChanged
       });
     }
-  }, [selectedRun?.id, selectedRun?.status]);  // 🔥 核心修复：移除 selectedRun 对象，只依赖 id 和 status
+  }, [selectedRun?.id, selectedRun?.status]);  // 🔥 修复：移除 selectedRun 对象，只依赖 id 和 status
 
   // 🔥 liveViewProps 完全基于 ref，不依赖 selectedRun 对象
   const liveViewProps = useMemo(() => {
@@ -1524,12 +1524,12 @@ export function TestRuns({
     }
   };
 
-  // 🔎 日志过滤与搜索 - 核心修复：从缓冲区合并日志
+  // 🔎 日志过滤与搜索 - 修复：从缓冲区合并日志
   const filteredLogs = useMemo(() => {
     const runId = selectedRun?.id;
     if (!runId) return [];
 
-    // 🔥 核心修复：不访问 selectedRun 对象，通过 runId 从 testRuns 查找
+    // 🔥 修复：不访问 selectedRun 对象，通过 runId 从 testRuns 查找
     const run = testRuns.find(r => r.id === runId);
     if (!run) return [];
 
@@ -1539,7 +1539,7 @@ export function TestRuns({
     });
     const keyword = logSearch.trim().toLowerCase();
 
-    // 🔥 核心优化：合并 run.logs 和缓冲区的日志
+    // 🔥 优化：合并 run.logs 和缓冲区的日志
     const baseLogs = run.logs || [];
     const bufferedLogs = logsBufferRef.current.get(runId) || [];
     const allLogs = [...baseLogs, ...bufferedLogs];

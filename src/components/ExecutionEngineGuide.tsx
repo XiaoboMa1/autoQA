@@ -243,7 +243,7 @@ const ExecutionEngineGuide: React.FC<ExecutionEngineGuideProps> = ({ visible, on
       ),
       children: (
         <div className="space-y-6">
-          {/* 核心特点对比 */}
+          {/* 特点对比 */}
           <div className="grid grid-cols-3 gap-4">
             <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
               <div className="flex items-center gap-2 mb-3">

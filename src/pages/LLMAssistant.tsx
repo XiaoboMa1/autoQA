@@ -45,7 +45,7 @@ const mockGeneratedTestCase: TestCaseGeneration = {
   code: `# Playwright MCP用户登录功能测试
 name: Playwright MCP登录流程测试
 description: 测试用户登录的完整流程(使用Playwright MCP推荐选择器)
-tags: [登录, 认证, Playwright MCP, 核心功能]
+tags: [登录, 认证, Playwright MCP, 功能]
 priority: high
 
 steps:

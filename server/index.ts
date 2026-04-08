@@ -594,7 +594,20 @@ async function startServer() {
       maxConcurrency: 6,
       perUserLimit: 2,
       taskTimeout: 600000, // 10 minutes
-      retryAttempts: 1
+      retryAttempts: 1,
+      // Adaptive concurrency: dynamically scale based on OS-level metrics
+      adaptive: {
+        minConcurrency: 1,
+        maxConcurrency: 6,
+        memDangerThreshold: 15,   // free memory < 15% → emergency brake
+        memSafeThreshold: 40,     // free memory > 40% → safe to scale up
+        cpuDangerRatio: 0.9,      // load average / cores > 0.9 → scale down
+        cpuSafeRatio: 0.6,
+        lagThreshold: 100,        // event loop p99 > 100ms → scale down
+        lagSafeThreshold: 50,
+        cooldownMs: 5000,
+        checkIntervalMs: 3000,
+      },
     });
     console.log('Queue service initialized');
 

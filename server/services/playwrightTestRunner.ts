@@ -1139,11 +1139,11 @@ export class PlaywrightTestRunner {
                   elementName = searchText || '';
                 }
                 
-                // 🔥 提取核心名称（移除"按钮"、"链接"等后缀，但保留"输入框"等关键信息用于判断元素类型）
+                // 🔥 提取名称（移除"按钮"、"链接"等后缀，但保留"输入框"等关键信息用于判断元素类型）
                 const isInputBox = elementName.includes('输入框') || elementName.includes('文本框') || elementName.includes('搜索框');
                 const coreName = elementName.replace(/按钮|链接|复选框|下拉框|搜索按钮/g, '').trim();
                 
-                console.log(`🔍 [${runId}] 从元素描述 "${searchText}" 提取元素名称: "${elementName}", 核心名称: "${coreName}", 是否输入框: ${isInputBox}`);
+                console.log(`🔍 [${runId}] 从元素描述 "${searchText}" 提取元素名称: "${elementName}", 名称: "${coreName}", 是否输入框: ${isInputBox}`);
                 
                 // 🔥 根据元素类型选择要尝试的 roles
                 const rolesToTry = isInputBox 
@@ -1162,14 +1162,14 @@ export class PlaywrightTestRunner {
                   }
                 }
                 
-                // 方式2: 通过 role 和核心名称查找
+                // 方式2: 通过 role 和名称查找
                 if (!found && coreName && coreName !== elementName) {
-                  console.log(`🔍 [${runId}] 尝试使用核心名称 "${coreName}" 查找`);
+                  console.log(`🔍 [${runId}] 尝试使用名称 "${coreName}" 查找`);
                   for (const role of rolesToTry) {
                     const roleLocator = this.page.getByRole(role as any, { name: coreName, exact: false });
                     if (await roleLocator.count() > 0) {
                       element = roleLocator.first();
-                      console.log(`✅ [${runId}] 通过 role "${role}" 和核心名称找到元素: "${coreName}"`);
+                      console.log(`✅ [${runId}] 通过 role "${role}" 和名称找到元素: "${coreName}"`);
                       found = true;
                       break;
                     }
@@ -1189,7 +1189,7 @@ export class PlaywrightTestRunner {
                     const inputByPlaceholderCore = this.page.locator(`input[placeholder*="${coreName}"], textarea[placeholder*="${coreName}"]`);
                     if (await inputByPlaceholderCore.count() > 0) {
                       element = inputByPlaceholderCore.first();
-                      console.log(`✅ [${runId}] 通过 placeholder（核心名称）找到输入框: "${coreName}"`);
+                      console.log(`✅ [${runId}] 通过 placeholder（名称）找到输入框: "${coreName}"`);
                       found = true;
                     }
                   }
@@ -1273,12 +1273,12 @@ export class PlaywrightTestRunner {
                   }
                 }
                 
-                // 方式4: 通过文本内容查找（使用核心名称）
+                // 方式4: 通过文本内容查找（使用名称）
                 if (!found && coreName && coreName !== elementName) {
                   const textLocator = this.page.getByText(coreName, { exact: false });
                   if (await textLocator.count() > 0) {
                     element = textLocator.first();
-                    console.log(`✅ [${runId}] 通过核心名称文本找到元素: "${coreName}"`);
+                    console.log(`✅ [${runId}] 通过名称文本找到元素: "${coreName}"`);
                     found = true;
                   }
                 }
@@ -1372,7 +1372,7 @@ export class PlaywrightTestRunner {
                   }
                   
                   if (!found) {
-                    throw new Error(`无法找到元素 "${searchText}"（已尝试: 完整名称"${elementName}", 核心名称"${coreName}"）`);
+                    throw new Error(`无法找到元素 "${searchText}"（已尝试: 完整名称"${elementName}", 名称"${coreName}"）`);
                   }
                 }
               }
@@ -1391,7 +1391,7 @@ export class PlaywrightTestRunner {
                   elementName = step.element || step.selector || '';
                 }
                 
-                // 提取核心名称（移除"按钮"、"链接"等后缀，但保留"输入框"等关键信息）
+                // 提取名称（移除"按钮"、"链接"等后缀，但保留"输入框"等关键信息）
                 const isInputBox = elementName.includes('输入框') || elementName.includes('文本框') || elementName.includes('搜索框');
                 const coreName = elementName.replace(/按钮|链接|复选框|下拉框|搜索按钮/g, '').trim();
                 
@@ -1408,7 +1408,7 @@ export class PlaywrightTestRunner {
                     const inputByPlaceholderCore = this.page.locator(`input[placeholder*="${coreName}"], textarea[placeholder*="${coreName}"]`);
                     if (await inputByPlaceholderCore.count() > 0) {
                       element = inputByPlaceholderCore.first();
-                      console.log(`✅ [${runId}] 回退匹配成功：通过 placeholder（核心名称）找到输入框 "${coreName}"`);
+                      console.log(`✅ [${runId}] 回退匹配成功：通过 placeholder（名称）找到输入框 "${coreName}"`);
                     }
                   }
                   

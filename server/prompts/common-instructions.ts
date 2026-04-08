@@ -201,7 +201,7 @@ export function getMarkdownFormatInstructions(): string {
 
 ## 错误7: 红色文字规则遗漏
 ❌ **错误**: 没有识别原型中的红色文字
-✅ **正确**: 查找 style="color:#D9001B" 或 style="color:red",作为核心规则提取
+✅ **正确**: 查找 style="color:#D9001B" 或 style="color:red",作为规则提取
 
 ## 错误8: 术语使用英文
 ❌ **错误**: 页面类型写"form page"、控件类型写"input"

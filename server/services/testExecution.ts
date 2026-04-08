@@ -125,7 +125,17 @@ export class TestExecutionService {
       maxConcurrency: 6,
       perUserLimit: 2,
       taskTimeout: 600000, // 10分钟
-      retryAttempts: 1
+      retryAttempts: 1,
+      adaptive: {
+        minConcurrency: 1,
+        maxConcurrency: 6,
+        memDangerThreshold: 15,
+        memSafeThreshold: 40,
+        lagThreshold: 100,
+        lagSafeThreshold: 50,
+        cooldownMs: 5000,
+        checkIntervalMs: 3000,
+      },
     });
 
     this.streamService = streamService || new StreamService({
@@ -2459,7 +2469,7 @@ ${elements.map((el, index) => `${index + 1}. ${el.ref}: ${el.role} "${el.text}"`
       });
       console.log(`🌐 [${runId}] 导航结果:`, navResult);
 
-      // 3. 🚀 智能等待页面加载 (Phase 1 优化核心)
+      // 3. 🚀 智能等待页面加载 (Phase 1 优化)
       if (isFirstStep) {
         console.log(`⚡ [${runId}] 首次导航智能等待 (DOM可交互状态)...`);
         const waitSuccess = await this.waitForCondition(
@@ -3661,7 +3671,7 @@ ${elements.map((el, index) => `${index + 1}. ${el.ref}: ${el.role} "${el.text}"`
     const queue = this.logQueue.get(runId);
     if (!queue || queue.logs.length === 0) return;
 
-    // 🔥 核心修复：复制日志数组，避免异步发送时数组已被清空
+    // 🔥 修复：复制日志数组，避免异步发送时数组已被清空
     const logsToSend = [...queue.logs];
 
     // 🔥 立即清理队列，为下一批日志做准备
@@ -6154,7 +6164,7 @@ ${elements.map((el, index) => `${index + 1}. ${el.ref}: ${el.role} "${el.text}"`
     const page = this.playwrightRunner.getPage();
     if (page) {
       try {
-        this.streamService.startStream(runId, page);
+        this.streamService.startStreamWithCDP(runId, page);
         console.log(`📺 [${runId}] 实时流已启动`);
         this.addLog(runId, `📺 实时流: 已启用`, 'success');
       } catch (streamError) {
@@ -6207,7 +6217,7 @@ ${elements.map((el, index) => `${index + 1}. ${el.ref}: ${el.role} "${el.text}"`
     const page = this.midsceneRunner.getPage();
     if (page) {
       try {
-        this.streamService.startStream(runId, page);
+        this.streamService.startStreamWithCDP(runId, page);
         console.log(`📺 [${runId}] 实时流已启动`);
         this.addLog(runId, `📺 实时流: 已启用`, 'success');
       } catch (streamError) {
@@ -8153,7 +8163,7 @@ ${elements.map((el, index) => `${index + 1}. ${el.ref}: ${el.role} "${el.text}"`
                   }
                 }
                 
-                // 提取核心元素名称（移除"按钮"、"链接"等后缀，但保留"输入框"等关键信息）
+                // 提取元素名称（移除"按钮"、"链接"等后缀，但保留"输入框"等关键信息）
                 const coreName = elementName.replace(/按钮|链接|复选框|下拉框|搜索按钮/g, '').trim();
                 
                 // 从页面元素中查找匹配的元素
@@ -8165,7 +8175,7 @@ ${elements.map((el, index) => `${index + 1}. ${el.ref}: ${el.role} "${el.text}"`
                   const searchName = elementName.toLowerCase();
                   const searchCore = coreName.toLowerCase();
                   
-                  // 🔥 优先匹配完整元素名称，然后匹配核心名称
+                  // 🔥 优先匹配完整元素名称，然后匹配名称
                   if (elementText === searchName || 
                       elementText.includes(searchName) ||
                       searchName.includes(elementText)) {

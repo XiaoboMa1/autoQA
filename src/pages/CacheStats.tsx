@@ -716,7 +716,7 @@ const CacheStatsPage: React.FC = () => {
               </motion.div>
             </Col>
           </Row>
-      {/* 核心指标卡片 */}
+      {/* 指标卡片 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between' }}>
         {/* 总请求数卡片 */}
         <Col xs={24} sm={12} lg={6}>
@@ -940,7 +940,7 @@ const CacheStatsPage: React.FC = () => {
 
           
 
-          {/* 第二行：核心图表 */}
+          {/* 第二行：图表 */}
           <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
             {/* 趋势图 */}
             <Col xs={24} lg={16}>
